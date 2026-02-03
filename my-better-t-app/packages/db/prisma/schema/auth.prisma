@@ -2,21 +2,48 @@ model User {
   id            String    @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
-  image         String?
+  emailVerified Boolean   @default(false)   // bool : has user been email verified ?
+  image         String?                     // optionnal profile image URL
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  sessions      Session[]                   // All the sessions for this user
+  accounts      Account[]                   // All the accounts for this user
+
+  // MSG
+  sentMessages     Message[] @relation("SentMessages")      // Messages sent by this user
+  receivedMessages Message[] @relation("ReceivedMessages")  // Messages received by this user
 
   @@unique([email])
-  @@map("user")
+  @@map("user")     // rename table to "user"
+
+
 }
 
+
+model Message {
+  id           String   @id @default(cuid())   // Unique msg id.
+  senderId     String
+  recipientId  String
+  text         String
+  createdAt    DateTime @default(now())
+  
+  //USER
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
+  recipient    User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
+
+  @@index([senderId])    // Speeds up finding messages by sender
+  @@index([recipientId]) // Speeds up finding messages by recipient
+}
+
+
+
+
+
 model Session {
-  id        String   @id
+  // Login session for a user
+  id        String   @id                // Unique? session id.
   expiresAt DateTime
-  token     String
+  token     String                      // Unique session token.
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -25,11 +52,27 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
-  @@index([userId])
-  @@map("session")
+  @@index([userId])   // Speeds up searches on that field.
+  @@map("session")    // Change the table name in the database to "session".
 }
 
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+
+
 model Account {
+  // OAuth,google, github... account linked to a user
   id                    String    @id
   accountId             String
   providerId            String
@@ -49,14 +92,14 @@ model Account {
   @@map("account")
 }
 
-model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
-  @@index([identifier])
-  @@map("verification")
-}
+
+
+
+
+
+
+
+
+
+

@@ -2,6 +2,10 @@
 
 This is a my-better-t-app project created with Better-T-Stack CLI.
 
+
+> For the complete project description, goals, and guidelines, see [PROJECT.md](./PROJECT.md).
+
+
 ## Project Structure
 
 This is a monorepo with the following structure:
