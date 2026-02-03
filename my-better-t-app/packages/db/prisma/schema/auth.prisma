@@ -26,7 +26,8 @@ model Message {
   recipientId  String
   text         String
   createdAt    DateTime @default(now())
-  
+  readAt       DateTime?                      // When the message was read, null if unread.
+
   //USER
   sender       User     @relation("SentMessages", fields: [senderId], references: [id])
   recipient    User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
