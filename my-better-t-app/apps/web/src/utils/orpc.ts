@@ -10,6 +10,8 @@ import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+
+// ======== Default =========
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
