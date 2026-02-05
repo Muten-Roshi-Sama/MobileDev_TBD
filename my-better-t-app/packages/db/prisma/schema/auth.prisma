@@ -1,43 +1,21 @@
 model User {
-  id            String    @id
+  id            String   @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)   // bool : has user been email verified ?
-  image         String?                     // optionnal profile image URL
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]                   // All the sessions for this user
-  accounts      Account[]                   // All the accounts for this user
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // MSG
-  sentMessages     Message[] @relation("SentMessages")      // Messages sent by this user
-  receivedMessages Message[] @relation("ReceivedMessages")  // Messages received by this user
+  sessions      Session[]
+  accounts      Account[]
+
+  messagesSent  Message[]                     // Messages sent by this user
+  conversations ConversationParticipant[]    // Conversations this user is part of
 
   @@unique([email])
   @@map("user")     // rename table to "user"
-
-
 }
-
-
-model Message {
-  id           String   @id @default(cuid())   // Unique msg id.
-  senderId     String
-  recipientId  String
-  text         String
-  createdAt    DateTime @default(now())
-  readAt       DateTime?                      // When the message was read, null if unread.
-
-  //USER
-  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
-  recipient    User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
-
-  @@index([senderId])    // Speeds up finding messages by sender
-  @@index([recipientId]) // Speeds up finding messages by recipient
-}
-
-
-
 
 
 model Session {
@@ -56,8 +34,6 @@ model Session {
   @@index([userId])   // Speeds up searches on that field.
   @@map("session")    // Change the table name in the database to "session".
 }
-
-
 model Verification {
   id         String   @id
   identifier String
@@ -69,9 +45,6 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
-
-
-
 model Account {
   // OAuth,google, github... account linked to a user
   id                    String    @id
@@ -92,15 +65,6 @@ model Account {
   @@index([userId])
   @@map("account")
 }
-
-
-
-
-
-
-
-
-
 
 
 

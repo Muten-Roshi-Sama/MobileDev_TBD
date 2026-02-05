@@ -1,0 +1,43 @@
+// Important : uses auth.prisma for User model !
+
+
+model Message {
+  id             String   @id @default(cuid())   // Unique msg id.
+  conversationId String
+  senderId       String
+  text           String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])    // Speeds up finding messages by sender
+}
+
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt DateTime?   // markMsgAsRead
+  joinedAt   DateTime @default(now())
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+
+
+model Conversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+

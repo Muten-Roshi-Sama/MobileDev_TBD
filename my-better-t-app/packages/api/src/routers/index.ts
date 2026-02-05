@@ -1,7 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 
 import { protectedProcedure, publicProcedure } from "../index";
-import { messageRouter } from "./message";
+import { messageRouter } from "./chat/message";
 
 // Main API router: register all your routers here (messageRouter, etc).
 // This is the entrypoint for the app's API endpoints.
