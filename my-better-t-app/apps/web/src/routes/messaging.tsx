@@ -120,26 +120,25 @@ type Message = {
 
 
 // Main page
-export default function MessagingPage() {}
-// export default function MessagingPage() {
-//     const user = useCurrentUser();
-//     const conv = useConversations(user?.id);
-//     const msgs = useMessages(conv.selectedId);
+export default function MessagingPage() {
+    const user = useCurrentUser();
+    const conv = useConversations(user?.id);
+    const msgs = useMessages(conv.selectedId);
 
-//     return (
-//         <ChatLayout>
-//         <ConversationList
-//             conversations={conv.conversations}
-//             selectedId={conv.selectedId}
-//             onSelect={conv.selectConversation}
-//         />
-//         <ChatWindow
-//             messages={msgs.messages}
-//             onSend={msgs.send}
-//         />
-//         </ChatLayout>
-//     );
-// }
+    return (
+        <ChatLayout>
+        <ConversationList
+            conversations={conv.conversations}
+            selectedId={conv.selectedId}
+            onSelect={conv.selectConversation}
+        />
+        <ChatWindow
+            messages={msgs.messages}
+            onSend={msgs.send}
+        />
+        </ChatLayout>
+    );
+}
 
 
 
