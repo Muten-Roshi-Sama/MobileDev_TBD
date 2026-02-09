@@ -1,0 +1,14 @@
+{
+  "name": "@my-better-t-app/hooks",
+  "main": "hooks.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@my-better-t-app/api": "workspace:*",
+    "@orpc/server": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
+    "@tanstack/react-query": "^5.90.20",
+    "@types/react": "^19.2.13",
+    "react": "^19.2.4"
+  }
+}

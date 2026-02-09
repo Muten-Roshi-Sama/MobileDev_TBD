@@ -1,22 +1,102 @@
+import { orpc, client } from "@/utils/orpc"; // adjust import as needed
 import React, { useState, useEffect, useRef } from "react";
-import { client } from "@/utils/orpc"; // adjust import as needed
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation } from "@tanstack/react-query";
+
+
+import { useCurrentUser } from "@my-better-t-app/hooks";
+
 
 //UI
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 
-
-// ex .
-// await client.message.sendMsg({ recipientId, text });
-// await client.message.getCurrentUserInfo();
-// await client.message.checkInbox();
-// await client.message.loadAllMsg();
-
 export const Route = createFileRoute("/messaging")({
-    component: Messaging,
+    component: MessagingPage,
 });
+
+
+// ======= API Functions ============
+// user.ts :
+//      user.getCurrentUserInfo();
+//      user.search({ text: "alice" });
+//
+// message.ts :
+//      message.sendMsg({ recipientId: "user-id", text: "Hello!" });
+//      message.list();
+//
+// conversation.ts :
+//      conversation.listAll();
+//      conversation.create({ userIds: ["user-id-1", "user-id-2"] });
+//      conversation.markRead({ conversationId: "convo-id" });
+//      conversation.getById({ conversationId: "convo-id" });
+//
+
+
+
+
+function ChatLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <div style={{ display: "flex", height: "100vh" }}>
+        {children}
+        </div>
+    );
+}
+
+function ConversationList({ conversations, selectedId, onSelect }: any) {
+    return (
+        <aside style={{ width: 300, borderRight: "1px solid #eee" }}>
+        {conversations.map((conv: any) => (
+            <div
+            key={conv.id}
+            style={{
+                padding: 16,
+                background: conv.id === selectedId ? "#f0f0f0" : "transparent",
+                cursor: "pointer",
+            }}
+            onClick={() => onSelect(conv.id)}
+            >
+            {conv.title || conv.id}
+            </div>
+        ))}
+        </aside>
+    );
+}
+
+function ChatWindow({ messages, onSend }: any) {
+    const [text, setText] = useState("");
+    return (
+        <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+            {messages.map((msg: any) => (
+            <div key={msg.id} style={{ marginBottom: 8 }}>
+                <b>{msg.senderId}</b>: {msg.text}
+            </div>
+            ))}
+        </div>
+        <form
+            style={{ display: "flex", padding: 16, borderTop: "1px solid #eee" }}
+            onSubmit={e => {
+            e.preventDefault();
+            if (text.trim()) {
+                onSend(text);
+                setText("");
+            }
+            }}
+        >
+            <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            style={{ flex: 1, marginRight: 8 }}
+            placeholder="Type a message..."
+            />
+            <button type="submit">Send</button>
+        </form>
+        </main>
+    );
+}
+
 
 
 type User = {
@@ -37,103 +117,31 @@ type Message = {
     readAt?: Date | null;
 };
 
-export default function Messaging() {
-    const [user, setUser] = useState<User | null>(null);
-    const [recipientId, setRecipientId] = useState("");
-    const [text, setText] = useState("");
-    const [messages, setMessages] = useState<Message[]>([]);
-    
-
-    // Load current user info
-    useEffect(() => {
-        client.message.getCurrentUserInfo().then(setUser);
-    }, []);
-
-    // Load all messages for current user
-    useEffect(() => {
-        client.message.loadAllMsg().then(setMessages);
-    }, []);
-
-    // // For MVP, send to self
-    // useEffect(() => {
-    //     if (user) setRecipientId(user.id);
-    // }, [user]);
-
-    // Create CONVERSATION
-    const currentUserId = user?.id;
-    const conversations = React.useMemo(() => {
-    const convoMap: { [userId: string]: Message[] } = {};
-    messages.forEach(msg => {
-        const otherUserId = msg.senderId === currentUserId ? msg.recipientId : msg.senderId;
-        if (!convoMap[otherUserId]) convoMap[otherUserId] = [];
-        convoMap[otherUserId].push(msg);
-    });
-    return convoMap;
-    }, [messages, currentUserId]);
-
-    // Conv list
-    const conversationList = Object.entries(conversations).map(([userId, msgs]) => {
-    const lastMsg = msgs[msgs.length - 1];
-    return {
-        userId,
-        lastMsg,
-        messages: msgs,
-    };
-    });
 
 
+// Main page
+export default function MessagingPage() {}
+// export default function MessagingPage() {
+//     const user = useCurrentUser();
+//     const conv = useConversations(user?.id);
+//     const msgs = useMessages(conv.selectedId);
 
-    // SENDING
-    const handleSend = async () => {
-        if (!text) return;
-        await client.message.sendMsg({ recipientId, text });
-        setText("");
-        // Reload messages
-        client.message.loadAllMsg().then(setMessages);
-    };
+//     return (
+//         <ChatLayout>
+//         <ConversationList
+//             conversations={conv.conversations}
+//             selectedId={conv.selectedId}
+//             onSelect={conv.selectConversation}
+//         />
+//         <ChatWindow
+//             messages={msgs.messages}
+//             onSend={msgs.send}
+//         />
+//         </ChatLayout>
+//     );
+// }
 
 
 
 
-    // UI
-    const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
-
-    // =====================================================
-        <div className="flex h-[80vh]">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-100 border-r overflow-y-auto">
-        {conversationList.map(convo => (
-          <div
-            key={convo.userId}
-            className={`p-4 cursor-pointer ${selectedUserId === convo.userId ? "bg-blue-100" : ""}`}
-            onClick={() => setSelectedUserId(convo.userId)}
-          >
-            <div className="font-bold">{convo.userId}</div>
-            <div className="text-sm text-gray-600 truncate">{convo.lastMsg.text}</div>
-          </div>
-        ))}
-      </div>
-      {/* Main chat area */}
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
-
-        <div className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto p-4">
-            {selectedUserId &&
-                conversations[selectedUserId]?.map(msg => (
-                <div key={msg.id} className={`mb-2 ${msg.senderId === currentUserId ? "text-right" : "text-left"}`}>
-                    <span className={`inline-block px-3 py-2 rounded-lg ${msg.senderId === currentUserId ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
-                    {msg.text}
-                    </span>
-                </div>
-                ))}
-            </div>
-            {/* Input bar here */}
-            </div>
-        </div>
-    </div>
-}

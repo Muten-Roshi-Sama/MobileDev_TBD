@@ -43,9 +43,6 @@
 - Auth logic is shared but each app has its own client wrapper.
 - Database access is only from the API layer (never directly from apps).
 
-## Examples
-- See `packages/api/src/routers/` for API endpoint patterns.
-- See `apps/web/src/routes/` and `apps/native/app/` for UI and data flow.
 
 ## Reference
 - For project goals, always check `.ruler/PROJECT.md`.
