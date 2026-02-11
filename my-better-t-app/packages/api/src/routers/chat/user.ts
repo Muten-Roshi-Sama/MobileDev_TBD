@@ -57,8 +57,7 @@ export const userRouter = {
             return users;
         }),
 
-
-    getUserById : publicProcedure
+    getUsersByIds : publicProcedure
         // USERS LISTS !
         .input(z.object({ ids: z.array((z.string()) )}))
         .handler( async ({ input, context }) => {
@@ -78,6 +77,27 @@ export const userRouter = {
                 },
             });
             return users;
+        }),
+
+    getAll : publicProcedure
+        .handler( async ({ context }) => {
+            // Auth
+            const currentUserId = context.session?.user.id;
+            if (!currentUserId) {throw new Error("Not authenticated");}
+            // Prism query
+            const users = await prisma.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            });
+            return users;
+            // optionally exclude current user if you want
+            // return users.filter(u => u.id !== currentUserId);
         }),
 
 }

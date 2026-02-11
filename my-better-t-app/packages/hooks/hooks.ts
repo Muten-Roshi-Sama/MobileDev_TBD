@@ -1,12 +1,24 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import type { orpc } from "../../apps/web/src/utils/orpc";
+import { orpc } from "../../apps/web/src/utils/orpc";
 
 type ORPC = typeof orpc
 
 // =========
 // USER 
 // =========
+
+export function useUser(orpc: ORPC) {
+    // const [info, search, findById, getAll] = useState('');
+
+
+
+
+
+}
+
+
+
 export function useCurrentUser(orpc: ORPC) {
     const query = useQuery(
         orpc.user.getCurrentUserInfo.queryOptions()
@@ -47,7 +59,14 @@ export function useUsersByIds(orpc: ORPC, userIds: string[]) {
         error: seatch.error,
     };  
 }
-
+export function useGetAllUsers(orpc: ORPC) {
+    const { data, isLoading, error } = useQuery(orpc.user.getAll.queryOptions());
+    return {
+        users: data ?? [],
+        isLoading,
+        error,
+    };
+}
 
 
 // =========
@@ -73,6 +92,7 @@ export function useMessages(orpc: ORPC, conversationId: string | null, limit = 2
         })
     );
 
+    // Define a mutation callback function to expose a send() function 
     const mutation = useMutation(orpc.message.send.mutationOptions());
 
     return {
@@ -165,3 +185,10 @@ export function useMarkConversationRead(orpc: ORPC) {
 }
 
 
+export function useConversation(orpc: ORPC) {
+    // const list = useSuspenseQuery( orpc.conversation.listAll.queryOptions())
+    const send = useMutation( orpc.message.send.mutationOptions() );
+    // return { list, send}
+}
+
+// list = useConversationList(orpc);
