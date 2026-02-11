@@ -2,6 +2,7 @@ import prisma from "@my-better-t-app/db";
 import z from "zod";
 
 import { publicProcedure } from "../../index";
+import { get } from "http";
 
 
 
@@ -56,6 +57,28 @@ export const userRouter = {
             return users;
         }),
 
+
+    getUserById : publicProcedure
+        // USERS LISTS !
+        .input(z.object({ ids: z.array((z.string()) )}))
+        .handler( async ({ input, context }) => {
+            // Auth
+            const currentUserId = context.session?.user.id;
+            if (!currentUserId) {throw new Error("Not authenticated");}
+            // Prism query
+            const users = await prisma.user.findMany({
+                where: { id: {in : input.ids} },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            });
+            return users;
+        }),
 
 }
 

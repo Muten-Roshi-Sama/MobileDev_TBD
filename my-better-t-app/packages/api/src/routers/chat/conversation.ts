@@ -48,7 +48,7 @@ export const conversationRouter = {
                 const count = conversation.messages.filter(msg => msg.createdAt >= lastReadAt).length;
                 return {
                     id: conversation.id,
-                    participants: conversation.participants.map(p => p.userId), // list of all participants userIds
+                    participants: conversation.participants.map(p => ({ userId: p.userId })), // list of all participants userIds
                     lastMessage: conversation.messages[0] ? {
                         text: conversation.messages[0].text,                // display last msg text in sidebar
                         senderId: conversation.messages[0].senderId,        // display who sent last msg in sidebar

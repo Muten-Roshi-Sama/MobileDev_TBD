@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import type { orpc } from "../../apps/web/src/utils/orpc";
 
 type ORPC = typeof orpc
@@ -32,31 +33,47 @@ export function useUserSearch(orpc: ORPC, query: string) {
         error: search.error,
     };
 }
+export function useUsersByIds(orpc: ORPC, userIds: string[]) {
+    const enabled = userIds.length > 0;
+    const seatch = useQuery(
+        orpc.user.getUsersByIds.queryOptions({
+        input: { ids: userIds },
+        enabled
+        })
+    );
+    return {
+        users: seatch.data ?? [],
+        isLoading: seatch.isLoading,
+        error: seatch.error,
+    };  
+}
+
 
 
 // =========
 // Message
 // =========
-export function useMessages( orpc: ORPC, conversationId: string | null, limit = 20 ) {
-    // A Conversation selected required to query
+type Message = { id: string; senderId: string; recipientId: string; text: string; createdAt: Date; readAt?: Date | null; };
+export function useMessages(orpc: ORPC, conversationId: string | null, limit = 20) {
+    // Return if no conversation selected
     if (!conversationId) {
         return {
-        messages: [] as const,
-        nextCursor: null as string | null,
-        isLoading: false,
-        error: null,
-        refetch: () => {},
+            messages: [] as Message[],        // mutable array
+            nextCursor: null as string | null,
+            isLoading: false,
+            error: null,
+            refetch: () => {},
+            send: (_text: string) => {},      // dummy send
         };
     }
-
+    // List all messages based on selected conversationId
     const query = useQuery(
         orpc.message.list.queryOptions({
-        input: {
-            conversationId,
-            limit,
-        },
+        input: { conversationId, limit },
         })
     );
+
+    const mutation = useMutation(orpc.message.send.mutationOptions());
 
     return {
         messages: query.data?.messages ?? [],
@@ -64,8 +81,17 @@ export function useMessages( orpc: ORPC, conversationId: string | null, limit = 
         isLoading: query.isLoading,
         error: query.error,
         refetch: query.refetch,
+        send: (text: string) => mutation.mutate({ conversationId, text }),
     };
 }
+
+
+
+
+
+
+
+
 export function useSendMessage(orpc: ORPC) {
     const mutation = useMutation(
         orpc.message.send.mutationOptions()
@@ -86,12 +112,16 @@ export function useSendMessage(orpc: ORPC) {
 // Conversation
 // =========
 export function useConversations(orpc: ORPC) {
-    const query = useQuery( orpc.conversation.listAll.queryOptions() );
+    const { data, isLoading, error, refetch } = useQuery( orpc.conversation.listAll.queryOptions() );
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+
     return {
-        conversations: query.data ?? [],  // empty array fallback if undefined
-        isLoading: query.isLoading,
-        error: query.error,
-        refetch: query.refetch,
+        conversations: data ?? [],   // empty array fallback if undefined
+        selectedId,
+        selectConversation: setSelectedId,
+        isLoading,
+        error,
+        refetch,
     };
 }
 
