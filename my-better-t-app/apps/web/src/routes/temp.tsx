@@ -48,14 +48,14 @@ export default function MessagingPage() {
 }
 
 function ChatLayout({
-    children: [left, right],
+    children: [sidebar, chat],
     }: {
     children: [React.ReactNode, React.ReactNode]; // represents anything React can render (<> tags, strings, bools, arrays...)
     }) {
     return (
         <div className="flex h-screen">
-        <div className="w-80 border-r flex flex-col">{left}</div>
-        <div className="flex-1 flex flex-col">{right}</div>
+        <div className="w-80 border-r flex flex-col">{sidebar}</div>
+        <div className="flex-1 flex flex-col">{chat}</div>
         </div>
     );
 }
