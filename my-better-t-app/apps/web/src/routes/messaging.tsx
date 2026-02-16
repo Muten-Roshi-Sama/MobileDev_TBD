@@ -51,7 +51,7 @@ function ChatLayout({
 }
 
 // ======= 1. SideBar ===========
-function Sidebar({ children }: { children: React.ReactNode }) {
+function SideBar({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-80 border-r flex flex-col">
       {children}
@@ -63,7 +63,7 @@ type HeaderProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
 };
-function SidebarHeader({ searchQuery, onSearchChange }: HeaderProps) {
+function SearchBar({ searchQuery, onSearchChange }: HeaderProps) {
   return (
     <div className="p-4 border-b">
       <input
@@ -183,7 +183,12 @@ function ChatArea({ messages }: { messages: Message[] }) {
   );
 }
 
-function ChatInput() {
+function ChatInput({messageInput, setMessageInput, handleSendMessage
+  } : {
+    messageInput: string, 
+    setMessageInput: (value: string) => void, 
+    handleSendMessage: () => void}
+  ) {
   return (
     <div>
       {/* Message Input */}
@@ -320,8 +325,8 @@ export function LiveChatApp() {
     <div>
       <ChatLayout>
 
-        <Sidebar>
-          <SidebarHeader
+        <SideBar>
+          <SearchBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -330,7 +335,7 @@ export function LiveChatApp() {
             selectedConversation={selectedConversation}
             onSelectConversation={setSelectedConversation}
           />
-        </Sidebar>
+        </SideBar>
 
 
         <ChatWindow>
@@ -339,9 +344,8 @@ export function LiveChatApp() {
           <ChatArea messages={currentMessages} />
             {/* List of messages in the conversation */}
 
-          <ChatInput>
+          <ChatInput messageInput={messageInput} setMessageInput={setMessageInput} handleSendMessage={handleSendMessage} />
             {/* Input field to type and send new messages */}
-          </ChatInput>
         </ChatWindow>
 
 
