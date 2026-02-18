@@ -59,17 +59,19 @@ function SideBar({ children }: { children: React.ReactNode }) {
   );
 }
 
-type HeaderProps = {
+type SearchBarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
 };
-function SearchBar({ searchQuery, onSearchChange }: HeaderProps) {
+function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
   return (
     <div className="p-4 border-b">
       <input
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search..."
+        className="w-full px-4 py-2 rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+
       />
     </div>
   );
@@ -111,28 +113,36 @@ function ConversationListItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-        selected ? 'bg-blue-50' : ''
+      // className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors 
+      className={`w-full flex items-center gap-3 px-4 py-3 border-b border-border transition-colors
+        ${selected 
+          ? 'bg-primary text-primary-foreground' 
+          : 'bg-sidebar text-sidebar-foreground hover:bg-accent'
       }`}
       aria-label={`Open conversation with ${conversation.name}`}
     >
+      {/* Avatar */}
       <div className="relative">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
           {conversation.avatar}
         </div>
         {conversation.online && (
           <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
         )}
       </div>
+      {/* Text */}
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-gray-900">{conversation.name}</span>
-          <span className="text-xs text-gray-500">{conversation.timestamp}</span>
+          {/* Name + Timestamp */}
+          <span className="font-semibold text-foreground">{conversation.name}</span>
+          <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600 truncate">{conversation.lastMessage}</span>
+          {/* Last Message */}
+          <span className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</span>
+          {/* Unread Bubble */}
           {conversation.unread > 0 && (
-            <span className="ml-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="ml-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               {conversation.unread}
             </span>
           )}
