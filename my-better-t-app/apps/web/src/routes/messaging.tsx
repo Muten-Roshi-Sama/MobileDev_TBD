@@ -26,7 +26,7 @@ interface Conversation {
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
   validateSearch: z.object({
-    selectedConversation: z.coerce.number().default(0),
+    selectedConversation: z.coerce.number().default(1),
   })
 });
 
@@ -47,7 +47,7 @@ function ChatLayout({
     children: [React.ReactNode, React.ReactNode]; // represents anything React can render (<> tags, strings, bools, arrays...)
     }) {
     return (
-        <div className="flex h-full overflow-hidden">
+        <div className="flex h-screen overflow-hidden">
           <div className="w-80 border-r flex flex-col overflow-y-auto">{sidebar}</div>  {/* Auto - scroll available if list long enough. */}
           <div className="flex-1 flex flex-col overflow-hidden">{chatWindow}</div>
         </div>
