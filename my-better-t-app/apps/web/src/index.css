@@ -48,7 +48,7 @@
   --sidebar-border: var(--border);
 
   /* Chat bubbles */
-  --bubble-me: oklch(46.449% 0.30503 255); /*var(--primary);*/
+  --bubble-me: cyan ;/*oklch(88.656% 0.15077 199.023);*/
   --bubble-me-foreground: oklch(1 0 0); /*var(--primary-foreground);*/
   --bubble-other: oklch(1 0 0);
   --bubble-other-foreground: oklch(0% 0 0);
@@ -66,13 +66,13 @@
   --card-foreground: oklch(0.5, 0.02 255);
 
   /* Primary slightly brighter in dark for contrast */
-  --primary: oklch(27.428% 0.09806 257.186); 
+  --primary: oklch(32.897% 0.00004 271.152); 
   --primary-foreground: oklch(0.15 0.02 255);
 
   --secondary: oklch(0.28 0.02 255);
   --secondary-foreground: var(--foreground);
 
-  --accent: oklch(25.596% 0.17488 265.533);
+  --accent: oklch(43.128% 0.00005 271.152);
   --accent-foreground: var(--foreground);
 
   --muted: oklch(0.25 0.02 255);
@@ -91,7 +91,7 @@
   --sidebar-active-foreground: var(--primary-foreground);
   --sidebar-border: var(--border);
 
-  --bubble-me: oklch(65.97% 0.21706 143.542);;
+  --bubble-me: oklch(65.97% 0.21706 143.542);
   --bubble-me-foreground: var(--primary-foreground);
   --bubble-other: oklch(1 0 0);
   --bubble-other-foreground: oklch(0% 0 0);

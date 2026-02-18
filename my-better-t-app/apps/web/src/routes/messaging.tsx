@@ -48,8 +48,8 @@ function ChatLayout({
     }) {
     return (
         <div className="flex h-full overflow-hidden">
-          <div className="w-80 border-r flex flex-col">{sidebar}</div>
-          <div className="flex-1 flex flex-col overflow-scroll">{chatWindow}</div>
+          <div className="w-80 border-r flex flex-col overflow-y-auto">{sidebar}</div>  {/* Auto - scroll available if list long enough. */}
+          <div className="flex-1 flex flex-col overflow-hidden">{chatWindow}</div>
         </div>
     );
 }
@@ -161,51 +161,59 @@ function ConversationListItem({
 
 
 // ======= 2. ChatWindow ===========
-function ChatWindow({ children }: { children: React.ReactNode }) {
-    return (
-      <div className="flex-1 flex flex-col h-full">{children}</div>
-    );
+function ChatWindow({ children }: { children: React.ReactNode[] }) {
+  return (
+    <div className="flex-1 flex flex-col h-full">
+      {/* Expect children: [ChatHeader, ChatArea, ChatInput] */}
+      {children.map((child, i) => (
+        <div key={i} className={i === 1 ? 'flex-1 overflow-y-auto' : undefined}>
+          {child}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ChatHeader({ conversation }: { conversation: Conversation }) {
   return (
     <div>
       {/* Chat Header */}
-    <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="bg-background border-b border-border p-4 flex items-center justify-between">
+
+      {/* Left Section : (Avatar, name, active status) */}
       <div className="flex items-center gap-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl text-primary-foreground">
             {conversation.avatar}
           </div>
+          {/* Active status */}
           {conversation.online && (
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background"></div>
           )}
         </div>
+        {/* Name */}
         <div>
-          <h2 className="font-semibold text-gray-900">{conversation.name}</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="font-semibold text-foreground">{conversation.name}</h2>
+          <p className="text-sm text-muted-foreground">
             {conversation.online ? 'Active now' : 'Offline'}
           </p>
         </div>
       </div>
+
+      {/* Right Section (Call, video Call & Settings) */}
       <div className="flex items-center gap-2">
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <button className="p-2 hover:bg-accent rounded-full transition-colors">
           <Phone className="w-5 h-5 text-gray-600" />
         </button>
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <button className="p-2 hover:bg-accent rounded-full transition-colors">
           <Video className="w-5 h-5 text-gray-600" />
         </button>
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <button className="p-2 hover:bg-accent rounded-full transition-colors">
           <MoreVertical className="w-5 h-5 text-gray-600" />
         </button>
       </div>
     </div>
-
-
-
     </div>
-    
- 
   );
 }
 
@@ -213,7 +221,7 @@ function ChatArea({ messages }: { messages: Message[] }) {
   return (
     <div>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="p-4 space-y-4">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -222,10 +230,10 @@ function ChatArea({ messages }: { messages: Message[] }) {
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
                 msg.sender === 'me'
-                  ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
-                  : 'bg-white text-gray-900 rounded-bl-none'
-                  // ? 'bg-(--bubble-me) text(--bubble-me-foreground) rounded-br-none'
-                  // : 'bg(--bubble-other) text(--bubble-other-foreground) rounded-bl-none'
+                  // ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
+                  // : 'bg-white text-gray-900 rounded-bl-none'
+                  ? 'bg-(--bubble-me) text(--bubble-me-foreground) rounded-br-none'
+                  : 'bg(--bubble-other) text(--bubble-other-foreground) rounded-bl-none'
               }`}
             >
               <p className="break-words">{msg.text}</p>
@@ -243,50 +251,47 @@ function ChatArea({ messages }: { messages: Message[] }) {
     </div>
   );
 }
-
-function ChatInput({messageInput, setMessageInput, handleSendMessage
-  } : {
-    messageInput: string, 
-    setMessageInput: (value: string) => void, 
-    handleSendMessage: () => void}
-  ) {
+function ChatInput({
+  messageInput,
+  setMessageInput,
+  handleSendMessage,
+}: {
+  messageInput: string;
+  setMessageInput: (value: string) => void;
+  handleSendMessage: () => void;
+}) {
   return (
-    <div>
-      {/* Message Input */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        <div className="flex items-end gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Paperclip className="w-5 h-5 text-gray-600" />
-          </button>
-          <div className="flex-1 relative">
-            <textarea
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Type a message..."
-              rows={1}
-              className="w-full px-4 py-2 pr-10 bg-gray-100 rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 rounded-full transition-colors">
-              <Smile className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-          <button
-            onClick={handleSendMessage}
-            disabled={!messageInput.trim()}
-            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="p-4 border-t bg-[var(--background)] flex items-end gap-2">
+      <button className="p-2 hover:bg-[var(--hover)] rounded-full transition-colors">
+        <Paperclip className="w-5 h-5 text-[var(--foreground)]" />
+      </button>
+      <div className="flex-1 relative">
+        <textarea
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
+          placeholder="Type a message..."
+          rows={1}
+          className="w-full px-4 py-2 pr-10 bg-input text-foreground rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-hover rounded-full transition-colors">
+          <Smile className="w-5 h-5 text-foreground" />
+        </button>
       </div>
+      <button
+        onClick={handleSendMessage}
+        disabled={!messageInput.trim()}
+        className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Send className="w-5 h-5" />
+      </button>
     </div>
-  )
+  );
 }
 
 // ======== MAIN APP COMPONENT ========
