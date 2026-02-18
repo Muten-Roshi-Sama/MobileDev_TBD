@@ -13,7 +13,7 @@
   
   /* Surfaces */
   --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
+  --card-foreground: oklch(0.5 0.02 255);
 
   /* Primary (main blue) */
   --primary: oklch(86.221% 0.06794 253.354);
@@ -48,10 +48,10 @@
   --sidebar-border: var(--border);
 
   /* Chat bubbles */
-  --bubble-me: var(--primary);
-  --bubble-me-foreground: var(--primary-foreground);
-  --bubble-other: var(--card);
-  --bubble-other-foreground: var(--card-foreground);
+  --bubble-me: oklch(46.449% 0.30503 255); /*var(--primary);*/
+  --bubble-me-foreground: oklch(1 0 0); /*var(--primary-foreground);*/
+  --bubble-other: oklch(1 0 0);
+  --bubble-other-foreground: oklch(0% 0 0);
   /* --unread-bubble: oklch(84.272% 0.24814 142.195); */
 
   --radius: 0.625rem;
@@ -63,7 +63,7 @@
   --foreground: oklch(0.96 0.01 255);
 
   --card: oklch(0.24 0.02 255);
-  --card-foreground: var(--foreground);
+  --card-foreground: oklch(0.5, 0.02 255);
 
   /* Primary slightly brighter in dark for contrast */
   --primary: oklch(27.428% 0.09806 257.186); 
@@ -91,10 +91,10 @@
   --sidebar-active-foreground: var(--primary-foreground);
   --sidebar-border: var(--border);
 
-  --bubble-me: var(--primary);
+  --bubble-me: oklch(65.97% 0.21706 143.542);;
   --bubble-me-foreground: var(--primary-foreground);
-  --bubble-other: var(--card);
-  --bubble-other-foreground: var(--card-foreground);
+  --bubble-other: oklch(1 0 0);
+  --bubble-other-foreground: oklch(0% 0 0);
 
   --radius: 0.625rem;
 }

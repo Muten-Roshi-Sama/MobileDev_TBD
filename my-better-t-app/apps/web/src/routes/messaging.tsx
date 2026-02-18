@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'lucide-react';
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import Header from '@/components/header';
+import z from 'zod';
 
 
 interface Message {
@@ -24,6 +25,9 @@ interface Conversation {
 
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
+  validateSearch: z.object({
+    selectedConversation: z.coerce.number().default(0),
+  })
 });
 
 
@@ -43,9 +47,9 @@ function ChatLayout({
     children: [React.ReactNode, React.ReactNode]; // represents anything React can render (<> tags, strings, bools, arrays...)
     }) {
     return (
-        <div className="flex h-screen">
-        <div className="w-80 border-r flex flex-col">{sidebar}</div>
-        <div className="flex-1 flex flex-col">{chatWindow}</div>
+        <div className="flex h-full overflow-hidden">
+          <div className="w-80 border-r flex flex-col">{sidebar}</div>
+          <div className="flex-1 flex flex-col overflow-scroll">{chatWindow}</div>
         </div>
     );
 }
@@ -84,18 +88,21 @@ type ConversationListProps = {
 };
 function ConversationList({
   conversations,
-  selectedConversation,
-  onSelectConversation,
+  // onSelectConversation,
 }: ConversationListProps) {
+  const { selectedConversation } = Route.useSearch()
   return (
     <div className="flex-1 overflow-y-auto" role="list">
       {conversations.map((conversation) => (
+        <Link to="." search={(prev) => ({ ...prev, selectedConversation: conversation.id })} key={conversation.id}>
         <ConversationListItem
           key={conversation.id}
           conversation={conversation}
           selected={selectedConversation === conversation.id}
-          onClick={() => onSelectConversation(conversation.id)}
+          // onClick={() => onSelectConversation(conversation.id)}
+          onClick={() => {}}
         />
+        </Link>
       ))}
     </div>
   );
@@ -156,7 +163,7 @@ function ConversationListItem({
 // ======= 2. ChatWindow ===========
 function ChatWindow({ children }: { children: React.ReactNode }) {
     return (
-      <div className="flex-1 flex flex-col">{children}</div>
+      <div className="flex-1 flex flex-col h-full">{children}</div>
     );
 }
 
@@ -215,14 +222,16 @@ function ChatArea({ messages }: { messages: Message[] }) {
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
                 msg.sender === 'me'
-                  ? 'bg-blue-500 text-white rounded-br-none'
+                  ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
                   : 'bg-white text-gray-900 rounded-bl-none'
+                  // ? 'bg-(--bubble-me) text(--bubble-me-foreground) rounded-br-none'
+                  // : 'bg(--bubble-other) text(--bubble-other-foreground) rounded-bl-none'
               }`}
             >
               <p className="break-words">{msg.text}</p>
               <p
                 className={`text-xs mt-1 ${
-                  msg.sender === 'me' ? 'text-blue-100' : 'text-gray-500'
+                  msg.sender === 'me' ? 'text-bubble-me-foreground' : 'text-gray-500'
                 }`}
               >
                 {msg.timestamp}
@@ -282,7 +291,8 @@ function ChatInput({messageInput, setMessageInput, handleSendMessage
 
 // ======== MAIN APP COMPONENT ========
 export function LiveChatApp() {
-  const [selectedConversation, setSelectedConversation] = useState<number>(1);
+  // const [selectedConversation, setSelectedConversation] = useState<number>(1);
+  const { selectedConversation } = Route.useSearch();
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -343,6 +353,11 @@ export function LiveChatApp() {
       { id: 5, text: 'When is the deadline?', sender: 'other', timestamp: '10:34 AM' },
       { id: 6, text: 'The deadline is next Friday', sender: 'me', timestamp: '10:35 AM' },
       { id: 7, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+      { id: 8, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+      { id: 9, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+      { id: 10, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+      { id: 11, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+      { id: 12, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
     ],
     2: [
       { id: 1, text: 'Thanks for the update!', sender: 'other', timestamp: '9:15 AM' },
@@ -373,10 +388,8 @@ export function LiveChatApp() {
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (  
-    <div>
+  return (
       <ChatLayout>
-
         <SideBar>
           <SearchBar
             searchQuery={searchQuery}
@@ -385,24 +398,18 @@ export function LiveChatApp() {
           <ConversationList
             conversations={filteredConversations}
             selectedConversation={selectedConversation}
-            onSelectConversation={setSelectedConversation}
+            onSelectConversation={() => {}}//{setSelectedConversation}
           />
         </SideBar>
-
-
         <ChatWindow>
           <ChatHeader conversation={currentConversation!} />
             {/* recipients name, picture, active status and conversations settings + call button... */}
           <ChatArea messages={currentMessages} />
             {/* List of messages in the conversation */}
-
           <ChatInput messageInput={messageInput} setMessageInput={setMessageInput} handleSendMessage={handleSendMessage} />
             {/* Input field to type and send new messages */}
         </ChatWindow>
-
-
       </ChatLayout>
-    </div>
 
   );
 }
