@@ -47,8 +47,8 @@ function ChatLayout({
     children: [React.ReactNode, React.ReactNode]; // represents anything React can render (<> tags, strings, bools, arrays...)
     }) {
     return (
-        <div className="flex h-screen overflow-hidden">
-          <div className="w-80 border-r flex flex-col overflow-y-auto">{sidebar}</div>  {/* Auto - scroll available if list long enough. */}
+        <div className="flex h-full overflow-hidden">
+          <div className="w-80 border-r flex flex-col h-full">{sidebar}</div>  {/* Auto - scroll available if list long enough. */}
           <div className="flex-1 flex flex-col overflow-hidden">{chatWindow}</div>
         </div>
     );
@@ -57,7 +57,7 @@ function ChatLayout({
 // ======= 1. SideBar ===========
 function SideBar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-80 border-r flex flex-col">
+    <div className="w-80 border-r flex flex-col h-full">
       {children}
     </div>
   );
@@ -161,18 +161,30 @@ function ConversationListItem({
 
 
 // ======= 2. ChatWindow ===========
-function ChatWindow({ children }: { children: React.ReactNode[] }) {
+function ChatWindow({ 
+    children: [ChatHeader, ChatArea, ChatInput],
+    }: {
+    children: [React.ReactNode, React.ReactNode, React.ReactNode]; // represents anything React can render (<> tags, strings, bools, arrays...)
+    }) {
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Expect children: [ChatHeader, ChatArea, ChatInput] */}
-      {children.map((child, i) => (
-        <div key={i} className={i === 1 ? 'flex-1 overflow-y-auto' : undefined}>
-          {child}
-        </div>
-      ))}
+      <div className="shrink-0">
+        {ChatHeader}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {ChatArea}
+      </div>
+
+      <div className="shrink-0">
+        {ChatInput}
+      </div>
     </div>
   );
 }
+
+
 
 function ChatHeader({ conversation }: { conversation: Conversation }) {
   return (
@@ -219,9 +231,8 @@ function ChatHeader({ conversation }: { conversation: Conversation }) {
 
 function ChatArea({ messages }: { messages: Message[] }) {
   return (
-    <div>
-      {/* Messages Area */}
       <div className="p-4 space-y-4">
+        {/* Messages Area */}
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -248,7 +259,6 @@ function ChatArea({ messages }: { messages: Message[] }) {
           </div>
         ))}
       </div>
-    </div>
   );
 }
 function ChatInput({
@@ -341,6 +351,60 @@ export function LiveChatApp() {
     {
       id: 5,
       name: 'Jessica Lee',
+      avatar: '👩‍💼',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 6,
+      name: 'Jonas Kraszinski',
+      avatar: '🧑',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 7,
+      name: 'Karim Benzema',
+      avatar: '👩‍💼',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 8,
+      name: 'Kylian George ',
+      avatar: '👩‍💼',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 9,
+      name: 'Andre Kandinski',
+      avatar: '👩‍💼',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 10,
+      name: 'Andre Kandinski',
+      avatar: '👩‍💼',
+      lastMessage: 'Perfect! Talk soon.',
+      timestamp: '2d ago',
+      unread: 0,
+      online: true,
+    },
+    {
+      id: 11,
+      name: 'Andre Kandinski',
       avatar: '👩‍💼',
       lastMessage: 'Perfect! Talk soon.',
       timestamp: '2d ago',
