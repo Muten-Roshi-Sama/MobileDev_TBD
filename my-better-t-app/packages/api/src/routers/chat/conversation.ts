@@ -3,8 +3,11 @@ import z from "zod";
 
 import { publicProcedure } from "../../index";
 
-
-
+// Important :
+    // - Avoid duplicate conversations between 2 users. (check if a conversation with same participants already exists before creating a new one.)
+    // - DELETE logic : conversation deletion should be soft delete (mark as deletedAt, archived) to avoid breaking message history for other participants. Only hard delete when all participants have deleted the conversation.
+    // - Metadata : track edited messages, deleted messages, reactions, attachements...
+    // - Performance : optimize getLastmessage, unreadCount, loading of other participants info
 
 export const conversationRouter = {
     /**
@@ -27,8 +30,7 @@ export const conversationRouter = {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
             if (!currentUserId) {throw new Error("Not authenticated");}
-            // 2. Prisma Query : findAll conversations where user is participant
-            const conversations = await prisma.conversation.findMany({
+             const conversations = await prisma.conversation.findMany({
                 where: {
                     participants: {some: { userId: currentUserId }}
                 },

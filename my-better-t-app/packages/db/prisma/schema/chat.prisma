@@ -1,21 +1,24 @@
 // Important : uses auth.prisma for User model !
 
 
-model Message {
-    id             String   @id @default(cuid())   // Unique msg id.
-    conversationId String
-    senderId       String
-    text           String
-    createdAt      DateTime @default(now())
 
-    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-    sender       User         @relation(fields: [senderId], references: [id])
+// Chat Thread between 2 or more users.
+//  - one conversation -> many messages
+//  - one conversation -> many participants (users)
+//  - Important : NO direct relation between users and conversations. Use a join table : ConversationParticipant
+model Conversation {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-    @@index([conversationId, createdAt])
-    @@index([senderId])    // Speeds up finding messages by sender
+    participants ConversationParticipant[]
+    messages     Message[]
 }
 
 
+// Join table for many-to-many relationship between User and Conversation
+//  - one conversation -> many participants (users)
+//  - other metadata : lastReadAt, joinedAt, etc. (specific to each users)
 model ConversationParticipant {
     conversationId String
     userId         String
@@ -26,17 +29,31 @@ model ConversationParticipant {
     lastReadAt DateTime?   // markMsgAsRead
     joinedAt   DateTime @default(now())
 
-    @@id([conversationId, userId])
+    @@id([conversationId, userId])  // A user can only appear once per conversation.
     @@index([userId])
 }
 
 
-model Conversation {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// Single message in a conversation
+// - belongs to a conversation
+// - belongs to a user (senderId)
+model Message {
+    id             String   @id @default(cuid())   // Unique msg id.
+    conversationId String
+    senderId       String
+    text           String
+    createdAt      DateTime @default(now())
 
-    participants ConversationParticipant[]
-    messages     Message[]
+    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    sender       User         @relation(fields: [senderId], references: [id])
+
+    @@index([conversationId, createdAt]) // Allows Faster loading of conversation messages ordered by time.
+    @@index([senderId])    // Allows Faster loading of messages by sender
 }
+
+
+
+
+
+
 

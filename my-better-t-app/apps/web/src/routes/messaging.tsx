@@ -459,6 +459,7 @@ export function LiveChatApp() {
 
   return (
       <ChatLayout>
+        {/* LEFT */}
         <SideBar>
           <SearchBar
             searchQuery={searchQuery}
@@ -470,16 +471,15 @@ export function LiveChatApp() {
             onSelectConversation={() => {}}//{setSelectedConversation}
           />
         </SideBar>
-        <ChatWindow>
-          <ChatHeader conversation={currentConversation!} />
-            {/* recipients name, picture, active status and conversations settings + call button... */}
-          <ChatArea messages={currentMessages} />
-            {/* List of messages in the conversation */}
-          <ChatInput messageInput={messageInput} setMessageInput={setMessageInput} handleSendMessage={handleSendMessage} />
-            {/* Input field to type and send new messages */}
-        </ChatWindow>
-      </ChatLayout>
 
+        {/* RIGHT */}
+        <ChatWindow>
+          <ChatHeader conversation={currentConversation!} />{/* recipients name, picture, active status and conversations settings + call button... */}
+          <ChatArea messages={currentMessages} />{/* List of messages in the conversation */}
+          <ChatInput messageInput={messageInput} setMessageInput={setMessageInput} handleSendMessage={handleSendMessage} />{/* Input field to type and send new messages */}
+        </ChatWindow>
+
+      </ChatLayout>
   );
 }
 

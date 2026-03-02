@@ -1,3 +1,11 @@
+
+
+// User :
+//  - one user -> many sessions (multiple devices logged in)
+//  - one user -> many OAuth accounts (google, github, email/password ...)
+//  - one user -> many messages sent
+//  - one user -> many conversations memberships (through ConversationParticipant)
+//
 model User {
   id            String   @id
   name          String
@@ -18,6 +26,11 @@ model User {
 }
 
 
+
+
+
+// When a user logs in, a session is created with an expiry token.
+//  this allows for multiple devices logged in.
 model Session {
   // Login session for a user
   id        String   @id                // Unique? session id.
@@ -34,6 +47,8 @@ model Session {
   @@index([userId])   // Speeds up searches on that field.
   @@map("session")    // Change the table name in the database to "session".
 }
+
+// For email verification, password reset, etc.
 model Verification {
   id         String   @id
   identifier String
@@ -45,8 +60,11 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+
+// Multiple other accounts linked to a user (OAuth,google, github ...)
 model Account {
-  // OAuth,google, github... account linked to a user
+  
   id                    String    @id
   accountId             String
   providerId            String

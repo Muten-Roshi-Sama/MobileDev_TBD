@@ -22,7 +22,7 @@ export default function Header() {
     { to: "/dashboard", label: "Dashboard" },
     { to: "/messaging", label: "Messaging" },
     // { to: "/todos", label: "Todos" },
-    { to: "/ai", label: "AI Chat" },
+    // { to: "/ai", label: "AI Chat" },
   ] as const;
 
   return (
