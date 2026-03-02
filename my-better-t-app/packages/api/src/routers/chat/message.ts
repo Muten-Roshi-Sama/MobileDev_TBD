@@ -1,6 +1,6 @@
 import prisma from "@my-better-t-app/db";
 import z from "zod";
-// import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server"; // install : pnpm --filter @my-better-t-app/api add @trpc/server@latest
 
 import { publicProcedure } from "../../index";
 
@@ -9,12 +9,20 @@ import { publicProcedure } from "../../index";
 //      - Check if user is authenticated in every procedure, 
 //      - Validate that user is a participant of the conversation before sending or listing messages
 //      - 
-//      TODO : use TRPCError with proper error codes instead of generic Errors.
 
+// --- Helpers -----
+async function ensureParticipant(prismaClient: typeof prisma, conversationId: string, userId: string) {
+    const isParticipant = await prismaClient.conversationParticipant.findFirst({
+        where: { conversationId, userId },
+    });
 
-const sendErrorMsg = "Forbidden: Not a participant of the conversation. Cannot send message, create conversation first.";
-const listErrorMsg = "Forbidden: Not a participant of the conversation. Cannot list messages, join conversation first.";
-
+    if (!isParticipant) {
+        throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Not a participant of the conversation.',
+        });
+    }
+}
 
 
 export const messageRouter = {
@@ -37,17 +45,9 @@ export const messageRouter = {
             if (!senderId) {throw new Error("Not authenticated");}
 
             // 2. check if user is participant of conversation
-            const isParticipant = await prisma.conversationParticipant.findUnique({
-                where: {
-                    conversationId_userId: {
-                        conversationId: input.conversationId, 
-                        userId : senderId
-                    }
-                }
-            });
-            if (!isParticipant) {throw new Error(sendErrorMsg);}
+            await ensureParticipant(prisma, input.conversationId, senderId);
 
-            // 2. Create message in db AND update conversation's updatedAt to now (in a transaction for atomicity)
+            // 3. Create message in db AND update conversation's updatedAt to now (in a transaction for atomicity)
             const [message] = await prisma.$transaction([
                 prisma.message.create({
                     data: {
@@ -84,16 +84,7 @@ export const messageRouter = {
             if (!currentUserId) {throw new Error("Not authenticated");}
 
             // 2. check if user is participant of conversation
-            const isParticipant = await prisma.conversationParticipant.findUnique({
-                where: {
-                    conversationId_userId: {
-                        conversationId: input.conversationId, 
-                        userId : currentUserId
-                    }
-                }
-            });
-            if (!isParticipant) {throw new Error(listErrorMsg);}
-
+            await ensureParticipant(prisma, input.conversationId, currentUserId);
 
             // 3. Fetch messages with pagination
             const messages = await prisma.message.findMany({
@@ -117,7 +108,8 @@ export const messageRouter = {
             };
         }),
 
-
+    
+    
 
 }
 
