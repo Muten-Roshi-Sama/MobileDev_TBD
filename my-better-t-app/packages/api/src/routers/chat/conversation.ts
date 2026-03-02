@@ -24,8 +24,12 @@ export const conversationRouter = {
      * 
      */
 
+
+    // Find all Conversations where current user is a participant.
+    //      - includes last message (for sidebar display), and 
+    //      - compute unread count based on lastReadAt of participant and messages createdAt.
+    //      - TODO : fix unreadcount computation (currently is boolean ?)
     listAll : publicProcedure
-        //* Find all Conversations where current user is a participant.
         .handler( async ({ context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
@@ -61,6 +65,10 @@ export const conversationRouter = {
             });
         }),
 
+
+    // Create new conversation using the provided userIds list. 
+    //      - (Adds current user id automatically,
+    //      - TODO : avoids duplicate convos between same users)
     create : publicProcedure
         .input(z.object({ userIds: z.array(z.string()).min(1) }))
         .handler( async ({ input, context }) => {
@@ -86,6 +94,12 @@ export const conversationRouter = {
             return conversation;
         }),
 
+
+
+    // Mark conversation as read for current user (update lastReadAt to now)
+    //     - TODO : validation that conversation exists
+    //     - TODO : validation that user is a participant
+    
     markRead : publicProcedure
         .input(z.object({ conversationId: z.string() }))
         .handler( async ({ input, context }) => {
@@ -107,6 +121,11 @@ export const conversationRouter = {
             return { success: true };
         }),
 
+
+
+    // Find conversation by id, including participants, last message and unread count for current user.
+    //     - TODO : validation that conversation exists
+    //     - TODO : validation that user is a participant
     getById : publicProcedure
         .input(z.object({ id: z.string() }))
         .handler( async ({ input, context }) => {
