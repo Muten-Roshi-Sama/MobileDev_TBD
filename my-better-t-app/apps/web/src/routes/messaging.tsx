@@ -173,7 +173,7 @@ function ChatWindow({
         {ChatHeader}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-(--chat-background)">
         {ChatArea}
       </div>
 
@@ -243,8 +243,8 @@ function ChatArea({ messages }: { messages: Message[] }) {
                 msg.sender === 'me'
                   // ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
                   // : 'bg-white text-gray-900 rounded-bl-none'
-                  ? 'bg-(--bubble-me) text(--bubble-me-foreground) rounded-br-none'
-                  : 'bg(--bubble-other) text(--bubble-other-foreground) rounded-bl-none'
+                  ? 'bg-(--bubble-me) text-(--bubble-me-foreground) rounded-br-none'
+                  : 'bg-(--bubble-other) text-(--bubble-other-foreground) rounded-bl-none'
               }`}
             >
               <p className="break-words">{msg.text}</p>

@@ -48,11 +48,14 @@
   --sidebar-border: var(--border);
 
   /* Chat bubbles */
-  --bubble-me: cyan ;/*oklch(88.656% 0.15077 199.023);*/
-  --bubble-me-foreground: oklch(1 0 0); /*var(--primary-foreground);*/
-  --bubble-other: oklch(1 0 0);
+  --bubble-me: #baf5ba ;/*oklch(88.656% 0.15077 199.023);*/
+  --bubble-me-foreground: var(--foreground);
+  --bubble-other: oklch(89.179% 0.01459 254.733);
   --bubble-other-foreground: oklch(0% 0 0);
   /* --unread-bubble: oklch(84.272% 0.24814 142.195); */
+
+  /* CHAT */
+  --chat-background: oklch(1, 0, 0); /*#b5eb*/
 
   --radius: 0.625rem;
 }
@@ -91,10 +94,13 @@
   --sidebar-active-foreground: var(--primary-foreground);
   --sidebar-border: var(--border);
 
-  --bubble-me: oklch(65.97% 0.21706 143.542);
-  --bubble-me-foreground: var(--primary-foreground);
-  --bubble-other: oklch(1 0 0);
-  --bubble-other-foreground: oklch(0% 0 0);
+  /* Chat bubbles */
+  --bubble-me: oklch(55% 0.18 143);
+  --bubble-me-foreground: oklch(0.98 0 0);
+  --bubble-other: oklch(0.30 0.02 255);
+  --bubble-other-foreground: oklch(0.96 0.01 255);
+
+  --chat-background: oklch(0.18 0.02 255);
 
   --radius: 0.625rem;
 }
