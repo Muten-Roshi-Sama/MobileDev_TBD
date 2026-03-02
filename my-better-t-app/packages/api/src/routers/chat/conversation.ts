@@ -1,7 +1,8 @@
 import prisma from "@my-better-t-app/db";
+import { TRPCError } from "@trpc/server";
 import z from "zod";
 
-import { publicProcedure } from "../../index";
+import { protectedProcedure } from "../../index";
 
 // Important :
     // - Avoid duplicate conversations between 2 users. (check if a conversation with same participants already exists before creating a new one.)
@@ -29,12 +30,12 @@ export const conversationRouter = {
     //      - includes last message (for sidebar display), and 
     //      - compute unread count based on lastReadAt of participant and messages createdAt.
     //      - TODO : fix unreadcount computation (currently is boolean ?)
-    listAll : publicProcedure
+    listAll : protectedProcedure
         .handler( async ({ context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
-             const conversations = await prisma.conversation.findMany({
+            // if (!currentUserId) {throw new Error("Not authenticated");}
+            const conversations = await prisma.conversation.findMany({
                 where: {
                     participants: {some: { userId: currentUserId }}
                 },
@@ -69,12 +70,11 @@ export const conversationRouter = {
     // Create new conversation using the provided userIds list. 
     //      - (Adds current user id automatically,
     //      - TODO : avoids duplicate convos between same users)
-    create : publicProcedure
+    create : protectedProcedure
         .input(z.object({ userIds: z.array(z.string()).min(1) }))
         .handler( async ({ input, context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
 
             // 2. Create conversation with participants
             const allUserIds = Array.from(new Set([...input.userIds, currentUserId]));
@@ -100,12 +100,12 @@ export const conversationRouter = {
     //     - TODO : validation that conversation exists
     //     - TODO : validation that user is a participant
     
-    markRead : publicProcedure
+    markRead : protectedProcedure
         .input(z.object({ conversationId: z.string() }))
         .handler( async ({ input, context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
+            // if (!currentUserId) {throw new Error("Not authenticated");}
 
             // 2. Update lastReadAt for participant
             await prisma.conversationParticipant.updateMany({
@@ -126,12 +126,12 @@ export const conversationRouter = {
     // Find conversation by id, including participants, last message and unread count for current user.
     //     - TODO : validation that conversation exists
     //     - TODO : validation that user is a participant
-    getById : publicProcedure
+    getById : protectedProcedure
         .input(z.object({ id: z.string() }))
         .handler( async ({ input, context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
+            // if (!currentUserId) {throw new Error("Not authenticated");}
 
             // 2. Find conversation by id
             const conversation = await prisma.conversation.findUnique({
@@ -165,4 +165,16 @@ export const conversationRouter = {
         }), 
 }
 
+// --- Helpers -----
+async function ensureParticipant(prismaClient: typeof prisma, conversationId: string, userId: string) {
+    const isParticipant = await prismaClient.conversationParticipant.findFirst({
+        where: { conversationId, userId },
+    });
 
+    if (!isParticipant) {
+        throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Not a participant of the conversation.',
+        });
+    }
+}

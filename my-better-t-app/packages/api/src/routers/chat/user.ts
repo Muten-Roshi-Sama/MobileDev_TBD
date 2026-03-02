@@ -1,11 +1,12 @@
 import prisma from "@my-better-t-app/db";
 import z from "zod";
 
-import { publicProcedure } from "../../index";
-import { get } from "http";
+import { protectedProcedure } from "../../index";
+// import { get } from "http";
 
 
-
+// Important : 
+//      - protectedProcedure : auto handles auth checks
 
 export const userRouter = {
     /**
@@ -14,12 +15,10 @@ export const userRouter = {
      */
 
     // Extract currently logged in user info (id, name, email, image, createdAt, updatedAt)
-    getCurrentUserInfo: publicProcedure
-        
+    getCurrentUserInfo: protectedProcedure
         .handler(async ({ context }) => {
             // Get current user info (id, name, email, image, createdAt, updatedAt)
             const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
             const user = await prisma.user.findUnique({
             where: { id: currentUserId },
             select: {
@@ -35,11 +34,9 @@ export const userRouter = {
         }),
 
     // Search users by name or email (case insensitive, partial match), excluding current user
-    search : publicProcedure
+    search : protectedProcedure
         .input(z.object({ text: z.string() }))
-        .handler( async ({ input, context }) => {
-            const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
+        .handler( async ({ input }) => {
             const users = await prisma.user.findMany({
                 where: {
                     OR: [
@@ -62,12 +59,9 @@ export const userRouter = {
 
 
     // Fetch batch of users by ids (for conversation participants info, etc.)
-    getUsersByIds : publicProcedure
+    getUsersByIds : protectedProcedure
         .input(z.object({ ids: z.array((z.string()) )})) //! USERS LISTS !
-        .handler( async ({ input, context }) => {
-            // Auth
-            const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
+        .handler( async ({ input }) => {
             // Prism query
             const users = await prisma.user.findMany({
                 where: { id: {in : input.ids} },
@@ -85,11 +79,8 @@ export const userRouter = {
 
 
     // TODO: bad for performance
-    getAll : publicProcedure
-        .handler( async ({ context }) => {
-            // Auth
-            const currentUserId = context.session?.user.id;
-            if (!currentUserId) {throw new Error("Not authenticated");}
+    getAll : protectedProcedure
+        .handler( async ({ }) => {
             // Prism query
             const users = await prisma.user.findMany({
                 select: {
