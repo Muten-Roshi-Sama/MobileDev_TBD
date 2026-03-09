@@ -1,6 +1,6 @@
 import prisma from "@my-better-t-app/db";
 import z from "zod";
-import { TRPCError } from "@trpc/server"; // install : pnpm --filter @my-better-t-app/api add @trpc/server@latest
+import { ORPCError } from "@orpc/server"; // install : pnpm --filter @my-better-t-app/api add @trpc/server@latest
 
 import { protectedProcedure } from "../../index";
 
@@ -101,10 +101,10 @@ async function ensureParticipant(prismaClient: typeof prisma, conversationId: st
     });
 
     if (!isParticipant) {
-        throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Not a participant of the conversation.',
-        });
+        throw new ORPCError("FORBIDDEN"); //, "Not a participant of the conversation.");
+    //     code: 'FORBIDDEN',
+    //     message: 'Not a participant of the conversation.',
+    //     });
     }
 }
 

@@ -14,8 +14,10 @@ export const userRouter = {
      * search({ query: string }) : search users by name or email
      */
 
+
+
     // Extract currently logged in user info (id, name, email, image, createdAt, updatedAt)
-    getCurrentUserInfo: protectedProcedure
+    current: protectedProcedure
         .handler(async ({ context }) => {
             // Get current user info (id, name, email, image, createdAt, updatedAt)
             const currentUserId = context.session?.user.id;
@@ -59,7 +61,7 @@ export const userRouter = {
 
 
     // Fetch batch of users by ids (for conversation participants info, etc.)
-    getUsersByIds : protectedProcedure
+    search_batch : protectedProcedure
         .input(z.object({ ids: z.array((z.string()) )})) //! USERS LISTS !
         .handler( async ({ input }) => {
             // Prism query

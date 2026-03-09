@@ -32,9 +32,7 @@ export const conversationRouter = {
     //      - TODO : fix unreadcount computation (currently is boolean ?)
     listAll : protectedProcedure
         .handler( async ({ context }) => {
-            // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            // if (!currentUserId) {throw new Error("Not authenticated");}
             const conversations = await prisma.conversation.findMany({
                 where: {
                     participants: {some: { userId: currentUserId }}

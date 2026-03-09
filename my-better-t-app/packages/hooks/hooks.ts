@@ -7,66 +7,60 @@ type ORPC = typeof orpc
 // =========
 // USER 
 // =========
-
 export function useUser(orpc: ORPC) {
-    // const [info, search, findById, getAll] = useState('');
-
-
-
-
-
-}
-
-
-
-export function useCurrentUser(orpc: ORPC) {
-    const query = useQuery(
-        orpc.user.getCurrentUserInfo.queryOptions()
-    );
-    return {
+    // const [getCurrentUserInfo, search, getUsersByIds] = useState('');
+    function current() {
+        const query = useQuery(
+        orpc.user.current.queryOptions()
+    )
+        return {
         user: query.data ?? null,
         isLoading: query.isLoading,
         isAuthenticated: !!query.data,
         error: query.error,
         refetch: query.refetch,
-    };
-}
-export function useUserSearch(orpc: ORPC, query: string) {
-    const enabled = query.trim().length > 1;
-    const search = useQuery(
+        }
+    }
+
+    function search(text: string) {
+        const enabled = text.trim().length > 1
+        const query = useQuery(
         orpc.user.search.queryOptions({
-        input: { text: query },
-        enabled
+            input: { text },
+            enabled,
         })
-    );
-    return {
-        users: search.data ?? [],
-        isLoading: search.isLoading,
-        error: search.error,
-    };
-}
-export function useUsersByIds(orpc: ORPC, userIds: string[]) {
-    const enabled = userIds.length > 0;
-    const seatch = useQuery(
-        orpc.user.getUsersByIds.queryOptions({
-        input: { ids: userIds },
-        enabled
+        )
+        return {
+            users: query.data ?? [],
+            isLoading: query.isLoading,
+            error: query.error,
+    }
+    }
+
+    function byIds(ids: string[]) {
+        const enabled = ids.length > 0
+
+        const query = useQuery(
+        orpc.user.search_batch.queryOptions({
+            input: { ids },
+            enabled,
         })
-    );
+        )
+
+        return {
+        users: query.data ?? [],
+        isLoading: query.isLoading,
+        error: query.error,
+        }
+    }
+
     return {
-        users: seatch.data ?? [],
-        isLoading: seatch.isLoading,
-        error: seatch.error,
-    };  
+        current,
+        search,
+        byIds,
+    }
 }
-export function useGetAllUsers(orpc: ORPC) {
-    const { data, isLoading, error } = useQuery(orpc.user.getAll.queryOptions());
-    return {
-        users: data ?? [],
-        isLoading,
-        error,
-    };
-}
+
 
 
 // =========

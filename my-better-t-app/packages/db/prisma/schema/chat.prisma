@@ -1,6 +1,13 @@
 // Important : uses auth.prisma for User model !
 
 
+// TODO :
+    // - add conversation type to later distinguish between 1 to 1 chats and group chats (group specific features.)
+    // 
+
+
+
+
 
 // Chat Thread between 2 or more users.
 //  - one conversation -> many messages
