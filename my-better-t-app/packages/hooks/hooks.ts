@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { orpc } from "../../apps/web/src/utils/orpc";
 
@@ -9,52 +9,53 @@ type ORPC = typeof orpc
 // =========
 export function useUser(orpc: ORPC) {
     // const [getCurrentUserInfo, search, getUsersByIds] = useState('');
-    function current() {
-        const query = useQuery(
-        orpc.user.current.queryOptions()
-    )
-        return {
-        user: query.data ?? null,
-        isLoading: query.isLoading,
-        isAuthenticated: !!query.data,
-        error: query.error,
-        refetch: query.refetch,
-        }
+
+    // ---- CURRENT USER INFO ----
+    const queryCurrent = useQuery(orpc.user.current.queryOptions());
+   const user = {
+        user: queryCurrent.data ?? null,
+        isLoading: queryCurrent.isLoading,
+        isAuthenticated: !!queryCurrent.data,
+        error: queryCurrent.error,
+        refetch: queryCurrent.refetch,
     }
 
-    function search(text: string) {
-        const enabled = text.trim().length > 1
-        const query = useQuery(
-        orpc.user.search.queryOptions({
+
+    // ---- SEARCH USERS ----
+    const [text, setText] = useState('');
+    const enabledSearch= text.trim().length > 1
+    const searchQuery = useQuery(orpc.user.search.queryOptions({
             input: { text },
-            enabled,
+            enabled: enabledSearch,
         })
-        )
-        return {
-            users: query.data ?? [],
-            isLoading: query.isLoading,
-            error: query.error,
-    }
+    )
+    const search = {
+            users: searchQuery.data ?? [],
+            isLoading: searchQuery.isLoading,
+            error: searchQuery.error,
     }
 
-    function byIds(ids: string[]) {
-        const enabled = ids.length > 0
 
-        const query = useQuery(
-        orpc.user.search_batch.queryOptions({
-            input: { ids },
-            enabled,
+
+    // ---- GET USERS BY IDS (BATCH) ----
+    const enabledByIds = idsList.length > 0
+    const queryByIds  = useQuery(
+    orpc.user.search_batch.queryOptions({
+        input: { ids: idsList },
+        enabled: enabledByIds,
         })
-        )
-
+    )
+    function byIds() {
         return {
-        users: query.data ?? [],
-        isLoading: query.isLoading,
-        error: query.error,
+        users: queryByIds .data ?? [],
+        isLoading: queryByIds .isLoading,
+        error: queryByIds .error,
         }
     }
 
     return {
+        searchText: text,
+        setSearchText: setText,
         current,
         search,
         byIds,
@@ -66,37 +67,60 @@ export function useUser(orpc: ORPC) {
 // =========
 // Message
 // =========
-type Message = { id: string; senderId: string; recipientId: string; text: string; createdAt: Date; readAt?: Date | null; };
-export function useMessages(orpc: ORPC, conversationId: string | null, limit = 20) {
-    // Return if no conversation selected
-    if (!conversationId) {
+export function useMessages(orpc: ORPC, conversationId: string | null) {
+    // Usage : 
+    //      const messageApi = useMessage(orpc);
+    //      const { messages, isLoading } = messageApi.list(conversationId);
+    const [newMessage, setNewMessage] = useState('');
+    const message = useQuery(orpc.message.list.queryOptions({ input: { conversationId: conversationId ?? '' } }));
+    const queryClient = useQueryClient();
+    const addMessage = useMutation(orpc.message.send.mutationOptions(), {
+        onMutate: () => {
+            queryClientsetQueryData(
+                orpc.message.list.key({ conversationId: conversationId ?? '' }),
+
+            ),
+        },
+    })
+
+    const [limit, setLitmit] = useState(20)
+    
+
+
+    // --- LIST ----
+    function list() {
+
         return {
-            messages: [] as Message[],        // mutable array
-            nextCursor: null as string | null,
-            isLoading: false,
-            error: null,
-            refetch: () => {},
-            send: (_text: string) => {},      // dummy send
+            messages: message.data?.messages ?? [],
+            nextCursor: message.data?.nextCursor ?? null,
+            isLoading: conversationId ? message.isLoading : false,
+            error: message.error,
+            refetch: message.refetch,
         };
     }
-    // List all messages based on selected conversationId
-    const query = useQuery(
-        orpc.message.list.queryOptions({
-        input: { conversationId, limit },
-        })
-    );
 
-    // Define a mutation callback function to expose a send() function 
-    const mutation = useMutation(orpc.message.send.mutationOptions());
+    // --- SEND ----
+    function send() {
+        addMessage.mutate()
+            
+
+
+
+
+        ) );
+        return {
+            send: mutation.mutate,
+            sendAsync: mutation.mutateAsync,
+            isSending: mutation.isPending,
+            error: mutation.error,
+        };
+    }
 
     return {
-        messages: query.data?.messages ?? [],
-        nextCursor: query.data?.nextCursor ?? null,
-        isLoading: query.isLoading,
-        error: query.error,
-        refetch: query.refetch,
-        send: (text: string) => mutation.mutate({ conversationId, text }),
+        list,
+        send,
     };
+
 }
 
 

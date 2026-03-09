@@ -6,14 +6,20 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createRouterClient } from "@orpc/server";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import { QueryCache, QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 
 // ======== Default =========
 export const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onSettled: () => {
+      queryClient.invalidateQueries()
+    },
+  }),
   queryCache: new QueryCache({
+    
     onError: (error, query) => {
       toast.error(`Error: ${error.message}`, {
         action: {
