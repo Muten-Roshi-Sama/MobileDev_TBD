@@ -4,15 +4,21 @@ import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'luci
 import { createFileRoute, Link } from "@tanstack/react-router";
 import Header from '@/components/header';
 import z from 'zod';
+import { useUser,useMessages } from '@my-better-t-app/hooks';
+import { orpc } from '@/utils/orpc';
+import type { ProcedureUtils } from '@orpc/tanstack-query';
 
 
+
+
+// TODO: import type from prisma, or from ORPC
+type C = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer O, any> ? O : never
 interface Message {
   id: number;
   text: string;
   sender: 'me' | 'other';
   timestamp: string;
 }
-
 interface Conversation {
   id: number;
   name: string;
@@ -23,10 +29,12 @@ interface Conversation {
   online: boolean;
 }
 
+
+
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
   validateSearch: z.object({
-    selectedConversation: z.coerce.number().default(1),
+    selectedConversation: z.string(), //.default("1"),
   })
 });
 
@@ -67,12 +75,14 @@ type SearchBarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
 };
-function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
+// function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
+function SearchBar() {
+  const {searchText, setSearchText} = useUser(orpc)
   return (
     <div className="p-4 border-b">
       <input
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
         placeholder="Search..."
         className="w-full px-4 py-2 rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 
@@ -86,6 +96,7 @@ type ConversationListProps = {
   selectedConversation: number;
   onSelectConversation: (id: number) => void;
 };
+
 function ConversationList({
   conversations,
   // onSelectConversation,
@@ -230,6 +241,11 @@ function ChatHeader({ conversation }: { conversation: Conversation }) {
 }
 
 function ChatArea({ messages }: { messages: Message[] }) {
+  const conversationId = Route.useSearch().selectedConversation
+  const {list} = useMessages(orpc, conversationId);
+
+
+
   return (
       <div className="p-4 space-y-4">
         {/* Messages Area */}
@@ -270,6 +286,10 @@ function ChatInput({
   setMessageInput: (value: string) => void;
   handleSendMessage: () => void;
 }) {
+  const conversationId = Route.useSearch().selectedConversation
+  const {send, setNewMessage, newMessage} = useMessages(orpc, conversationId)
+
+  
   return (
     <div className="p-4 border-t bg-[var(--background)] flex items-end gap-2">
       <button className="p-2 hover:bg-[var(--hover)] rounded-full transition-colors">
@@ -277,12 +297,12 @@ function ChatInput({
       </button>
       <div className="flex-1 relative">
         <textarea
-          value={messageInput}
-          onChange={(e) => setMessageInput(e.target.value)}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              handleSendMessage();
+              send;
             }
           }}
           placeholder="Type a message..."
@@ -294,8 +314,9 @@ function ChatInput({
         </button>
       </div>
       <button
-        onClick={handleSendMessage}
-        disabled={!messageInput.trim()}
+        // onClick={handleSendMessage}
+        onClick={send}
+        disabled={!newMessage.trim()}
         className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Send className="w-5 h-5" />
@@ -310,6 +331,7 @@ export function LiveChatApp() {
   const { selectedConversation } = Route.useSearch();
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
 
   const conversations: Conversation[] = [
     {

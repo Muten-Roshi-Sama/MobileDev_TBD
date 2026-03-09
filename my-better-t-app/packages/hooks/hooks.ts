@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { orpc } from "../../apps/web/src/utils/orpc";
+import type { set } from "zod";
 
 type ORPC = typeof orpc
 
@@ -12,7 +13,7 @@ export function useUser(orpc: ORPC) {
 
     // ---- CURRENT USER INFO ----
     const queryCurrent = useQuery(orpc.user.current.queryOptions());
-   const user = {
+    const user = {
         user: queryCurrent.data ?? null,
         isLoading: queryCurrent.isLoading,
         isAuthenticated: !!queryCurrent.data,
@@ -22,10 +23,10 @@ export function useUser(orpc: ORPC) {
 
 
     // ---- SEARCH USERS ----
-    const [text, setText] = useState('');
-    const enabledSearch= text.trim().length > 1
+    const [searchText, setSearchText] = useState('');
+    const enabledSearch= searchText.trim().length > 1
     const searchQuery = useQuery(orpc.user.search.queryOptions({
-            input: { text },
+            input: { text: searchText },
             enabled: enabledSearch,
         })
     )
@@ -38,6 +39,7 @@ export function useUser(orpc: ORPC) {
 
 
     // ---- GET USERS BY IDS (BATCH) ----
+    const [idsList, setIdsList] = useState<string[]>([]);
     const enabledByIds = idsList.length > 0
     const queryByIds  = useQuery(
     orpc.user.search_batch.queryOptions({
@@ -45,24 +47,22 @@ export function useUser(orpc: ORPC) {
         enabled: enabledByIds,
         })
     )
-    function byIds() {
-        return {
+    const byIds = {
         users: queryByIds .data ?? [],
         isLoading: queryByIds .isLoading,
         error: queryByIds .error,
-        }
     }
+    
 
     return {
-        searchText: text,
-        setSearchText: setText,
-        current,
+        searchText,
+        setSearchText,
+        current: user,
         search,
         byIds,
+        setIdsList
     }
 }
-
-
 
 // =========
 // Message
@@ -71,25 +71,34 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
     // Usage : 
     //      const messageApi = useMessage(orpc);
     //      const { messages, isLoading } = messageApi.list(conversationId);
+
     const [newMessage, setNewMessage] = useState('');
     const message = useQuery(orpc.message.list.queryOptions({ input: { conversationId: conversationId ?? '' } }));
     const queryClient = useQueryClient();
-    const addMessage = useMutation(orpc.message.send.mutationOptions(), {
-        onMutate: () => {
-            queryClientsetQueryData(
-                orpc.message.list.key({ conversationId: conversationId ?? '' }),
 
-            ),
+
+    
+    const addMessage = useMutation(orpc.message.send.mutationOptions({
+        onMutate: () => {
+            queryClient.setQueryData(
+                orpc.message.list.queryKey({ input: { conversationId: conversationId! } }),
+                (oldData) => ({...oldData, messages: [...(oldData?.messages ?? []), { id: '', createdAt: new Date(), text: newMessage, senderId: 'me', timestamp: new Date().toISOString(), conversationId: conversationId! }], nextCursor: null})
+            )
         },
-    })
+        // AUTO DONE :
+        // onSettled: () => {
+        //     queryClient.invalidateQueries(
+        //         orpc.message.list.key({ conversationId: conversationId ?? '' }),
+        //     );
+        // }
+    }))
+
+
+
 
     const [limit, setLitmit] = useState(20)
-    
-
-
     // --- LIST ----
     function list() {
-
         return {
             messages: message.data?.messages ?? [],
             nextCursor: message.data?.nextCursor ?? null,
@@ -99,26 +108,14 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
         };
     }
 
-    // --- SEND ----
-    function send() {
-        addMessage.mutate()
-            
-
-
-
-
-        ) );
-        return {
-            send: mutation.mutate,
-            sendAsync: mutation.mutateAsync,
-            isSending: mutation.isPending,
-            error: mutation.error,
-        };
-    }
-
     return {
+        newMessage,
+        setNewMessage,
         list,
-        send,
+        send() {
+            addMessage.mutate({ conversationId: conversationId ?? '', text: newMessage });
+            setNewMessage('')
+        },
     };
 
 }
@@ -129,19 +126,6 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
 
 
 
-
-export function useSendMessage(orpc: ORPC) {
-    const mutation = useMutation(
-        orpc.message.send.mutationOptions()
-    );
-
-    return {
-        send: mutation.mutate,
-        sendAsync: mutation.mutateAsync,
-        isSending: mutation.isPending,
-        error: mutation.error,
-    };
-}
 
 
 
