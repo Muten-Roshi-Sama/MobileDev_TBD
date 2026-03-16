@@ -13,7 +13,7 @@ export function useUser(orpc: ORPC) {
 
     // ---- CURRENT USER INFO ----
     const queryCurrent = useQuery(orpc.user.current.queryOptions());
-    const user = {
+    const currentUserInfo = {
         user: queryCurrent.data ?? null,
         isLoading: queryCurrent.isLoading,
         isAuthenticated: !!queryCurrent.data,
@@ -57,7 +57,7 @@ export function useUser(orpc: ORPC) {
     return {
         searchText,
         setSearchText,
-        current: user,
+        currentUserInfo,
         search,
         byIds,
         setIdsList
@@ -68,16 +68,12 @@ export function useUser(orpc: ORPC) {
 // Message
 // =========
 export function useMessages(orpc: ORPC, conversationId: string | null) {
-    // Usage : 
-    //      const messageApi = useMessage(orpc);
-    //      const { messages, isLoading } = messageApi.list(conversationId);
-
     const [newMessage, setNewMessage] = useState('');
     const message = useQuery(orpc.message.list.queryOptions({ input: { conversationId: conversationId ?? '' } }));
     const queryClient = useQueryClient();
 
 
-    
+    // --- SEND MESSAGE ---
     const addMessage = useMutation(orpc.message.send.mutationOptions({
         onMutate: () => {
             queryClient.setQueryData(
@@ -94,33 +90,37 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
     }))
 
 
-
-
-    const [limit, setLitmit] = useState(20)
-    // --- LIST ----
-    function list() {
-        return {
+    // --- LIST MESSAGES ----
+    const [limit, setLitmit] = useState(20);
+    const listMessages = {
             messages: message.data?.messages ?? [],
             nextCursor: message.data?.nextCursor ?? null,
             isLoading: conversationId ? message.isLoading : false,
             error: message.error,
             refetch: message.refetch,
         };
-    }
 
     return {
         newMessage,
         setNewMessage,
-        list,
+        
         send() {
             addMessage.mutate({ conversationId: conversationId ?? '', text: newMessage });
             setNewMessage('')
+        },
+        //
+        limit,
+        setLitmit,
+        list() {
+
         },
     };
 
 }
 
-
+// TODO: 
+//      - change conversationId to number, and store it as selectedConversation in the url
+//      - remove interfaces and replace by inferred types from Prisma or inherit them directly
 
 
 

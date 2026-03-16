@@ -1,40 +1,34 @@
 import { useState } from 'react';
-import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'lucide-react';
-
 import { createFileRoute, Link } from "@tanstack/react-router";
-import Header from '@/components/header';
+
+// Libs
 import z from 'zod';
 import { useUser,useMessages } from '@my-better-t-app/hooks';
 import { orpc } from '@/utils/orpc';
 import type { ProcedureUtils } from '@orpc/tanstack-query';
+import Header from '@/components/header';
+
+// UI
+import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'lucide-react';
 
 
 
 
-// TODO: import type from prisma, or from ORPC
-type C = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer O, any> ? O : never
-interface Message {
-  id: number;
-  text: string;
-  sender: 'me' | 'other';
-  timestamp: string;
-}
-interface Conversation {
-  id: number;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-  online: boolean;
-}
-
+// Import DB types
+import type { Prisma } from '../../../../packages/db/prisma/generated/client';
+// Inherit Types
+type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true, messages:true } }>
+type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
+type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
+// type Conversation = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer OA, any> ? OA extends  (infer O)[] ? O : never : never
+// type Message = typeof orpc.message.list extends ProcedureUtils<any, any, infer O, any> ? O extends { messages: any} ? O['messages'][number] : never : never
+// type User = typeof orpc.user.current extends ProcedureUtils<any, any, infer O, any> ? O : never
 
 
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
   validateSearch: z.object({
-    selectedConversation: z.string(), //.default("1"),
+    cuid: z.string().optional(),
   })
 });
 
@@ -43,6 +37,7 @@ export const Route = createFileRoute("/messaging")({
 //  ├── Sidebar
 //  │     ├── Header
 //  │     └── ConversationList
+
 //  └── ChatWindow
 //        ├── ChatHeader
 //        ├── MessagesArea
@@ -71,10 +66,7 @@ function SideBar({ children }: { children: React.ReactNode }) {
   );
 }
 
-type SearchBarProps = {
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
-};
+
 // function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
 function SearchBar() {
   const {searchText, setSearchText} = useUser(orpc)
@@ -85,7 +77,6 @@ function SearchBar() {
         onChange={(e) => setSearchText(e.target.value)}
         placeholder="Search..."
         className="w-full px-4 py-2 rounded-lg bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-
       />
     </div>
   );
@@ -93,26 +84,28 @@ function SearchBar() {
 
 type ConversationListProps = {
   conversations: Conversation[];
-  selectedConversation: number;
-  onSelectConversation: (id: number) => void;
 };
 
 function ConversationList({
   conversations,
   // onSelectConversation,
 }: ConversationListProps) {
-  const { selectedConversation } = Route.useSearch()
+  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
   return (
     <div className="flex-1 overflow-y-auto" role="list">
       {conversations.map((conversation) => (
-        <Link to="." search={(prev) => ({ ...prev, selectedConversation: conversation.id })} key={conversation.id}>
-        <ConversationListItem
-          key={conversation.id}
-          conversation={conversation}
-          selected={selectedConversation === conversation.id}
-          // onClick={() => onSelectConversation(conversation.id)}
-          onClick={() => {}}
-        />
+        
+        // <Link to="." search={(prev) => ({ ...prev, selectedConversation: conversation.id })} key={conversation.id}>
+        <Link 
+            key={conversation.id}
+            to="." 
+            search={(prev) => ({ ...prev, cuid: conversation.id })} >
+            <ConversationListItem
+              conversation={conversation}
+              selected={cuid === conversation.id}
+              // onClick={() => onSelectConversation(conversation.id)}
+              onClick={() => {}}
+            />
         </Link>
       ))}
     </div>
@@ -128,6 +121,13 @@ function ConversationListItem({
   selected: boolean;
   onClick: () => void;
 }) {
+  const name = conversation.participants[0]?.userId ?? "Unknown"
+  const lastText = conversation.lastMessage?.text ?? ""
+  const timestamp = conversation.lastMessage
+    ? conversation.lastMessage.createdAt.toLocaleTimeString()
+    : ""
+  const online = true;
+  const unreadCount = conversation.unreadCount ?? 0;
   return (
     <button
       onClick={onClick}
@@ -137,14 +137,14 @@ function ConversationListItem({
           ? 'bg-primary text-primary-foreground' 
           : 'bg-sidebar text-sidebar-foreground hover:bg-accent'
       }`}
-      aria-label={`Open conversation with ${conversation.name}`}
+      aria-label={`Open conversation with ${name}`}
     >
       {/* Avatar */}
       <div className="relative">
         <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
-          {conversation.avatar}
+          {/* {conversation.avatar} */}
         </div>
-        {conversation.online && (
+        {online && (
           <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
         )}
       </div>
@@ -152,16 +152,16 @@ function ConversationListItem({
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between">
           {/* Name + Timestamp */}
-          <span className="font-semibold text-foreground">{conversation.name}</span>
-          <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
+          <span className="font-semibold text-foreground">{name}</span>
+          <span className="text-xs text-muted-foreground">{timestamp}</span>
         </div>
         <div className="flex items-center justify-between">
           {/* Last Message */}
-          <span className="text-sm text-muted-foreground truncate">{conversation.lastMessage}</span>
+          <span className="text-sm text-muted-foreground truncate">{lastText}</span>
           {/* Unread Bubble */}
-          {conversation.unread > 0 && (
+          {unreadCount > 0 && (
             <span className="ml-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {conversation.unread}
+              {unreadCount}
             </span>
           )}
         </div>
@@ -239,16 +239,26 @@ function ChatHeader({ conversation }: { conversation: Conversation }) {
     </div>
   );
 }
-
 function ChatArea({ messages }: { messages: Message[] }) {
-  const conversationId = Route.useSearch().selectedConversation
-  const {list} = useMessages(orpc, conversationId);
+  const { cuid } = Route.useSearch();
+  // const conversationId = Route.useSearch().selectedConversation
+  const {list} = useMessages(orpc, cuid ?? '');
 
-
-
+//   type Message = {
+//     messages: {
+//         id: string;
+//         createdAt: Date;
+//         text: string;
+//         conversationId: string;
+//         senderId: string;
+//     }[];
+//     nextCursor: string | null;
+// }
+  
   return (
       <div className="p-4 space-y-4">
         {/* Messages Area */}
+          const 
         {messages.map((msg) => (
           <div
             key={msg.id}
