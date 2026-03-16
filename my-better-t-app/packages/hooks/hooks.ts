@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { use, useState } from "react";
 import { orpc, queryClient } from "../../apps/web/src/utils/orpc";
 import type { set } from "zod";
+import type { get } from "http";
 
 type ORPC = typeof orpc
 
@@ -31,9 +32,9 @@ export function useUser(orpc: ORPC) {
         })
     )
     const search = {
-            users: searchQuery.data ?? [],
-            isLoading: searchQuery.isLoading,
-            error: searchQuery.error,
+        users: searchQuery.data ?? [],
+        isLoading: searchQuery.isLoading,
+        error: searchQuery.error,
     }
 
 
@@ -133,7 +134,7 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
 // =========
 // Conversation
 // =========
-export function useConversations(orpc: ORPC) {
+export function useConversations(orpc: ORPC, cuid?: string) {
     const { data, isLoading, error, refetch } = useQuery( orpc.conversation.listAll.queryOptions() );
     // const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -161,23 +162,33 @@ export function useConversations(orpc: ORPC) {
     const createConversation = useMutation(orpc.conversation.create.mutationOptions({
         onMutate: async ({ userIds }) => {
             // Optimistically add a new conversation to the list with a temporary ID
-            // const tempId = `temp-${Date.now()}`;
-            queryClient.setQueryData(
-                orpc.conversation.listAll.queryKey(),
-                (oldData) => [...(oldData ?? []), {
-                    id: Date.now(),
-                    participants: userIds.map(id => ({ userId: id })),
-                    lastMessage: null,
-                    unreadCount: 0,
-                }]
-            );
-            // return tempId; // Return the temporary ID for later reference
+        queryClient.setQueryData(
+            orpc.conversation.listAll.queryKey(),
+            (oldData) => [
+            ...(oldData ?? []),
+            {
+                id: "temp-id",
+                participants: userIds.map((userId) => ({  // participants expect these fields
+                    userId,
+                    conversationId: "temp-id",
+                    lastReadAt: null,
+                    joinedAt: new Date(),
+                })),
+                messages: [], // empty array is OK
+                lastMessage: null,
+                unreadCount: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+            ]
+        );
         },
         // Cache invalidation AUTO DONE...
-    }))
+    })
+    );
 
+    // --- markRead --  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
 
-    // --- markRead ---
     const markAsRead = useMutation(orpc.conversation.markRead.mutationOptions({
         onMutate: async ({ conversationId }) => {
             // Optimistically update the conversation's lastReadAt for the current user
@@ -198,15 +209,26 @@ export function useConversations(orpc: ORPC) {
     }))
 
     // --- getById ---
+    const getById = useQuery(orpc.conversation.getById.queryOptions({
+        input: { id: cuid ?? '' },            // store the current conv Id in the functions params.
+        enabled: !!cuid,                      // only fetch if cuid exists
+    }))
+    
+
+
 
 
     return {
+        // listAll
         conversations: convs ?? [],   // empty array fallback if undefined
         isLoading,
         error,
         refetch,
-        // selectedId,
-        // selectConversation: setSelectedId,
+
+        // getById
+        getById,                // contains { data, isLoading, error }
+
+        // Mutations
         createConversation: (userIds: string[]) => {
             createConversation.mutate({ userIds });
         },

@@ -84,12 +84,11 @@ function SearchBar() {
   );
 }
 
-type ConversationListProps = {
-  conversations: Conversation[];
-};
+// type ConversationListProps = {
+//   conversations: Conversation[];
+// };
 
-function ConversationList({
-  }: ConversationListProps) {
+function ConversationList() {
   const { conversations } = useConversations(orpc)
   return (
     <div className="flex-1 overflow-y-auto" role="list">
@@ -107,7 +106,9 @@ function ConversationList({
   );
 }
 
-function ConversationListItem(selectedCv: ReturnType<typeof useConversations>['conversations'][number]) {
+function ConversationListItem(
+  selectedCv: ReturnType<typeof useConversations>['conversations'][number]
+  ) {
   const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
   const { markAsRead } = useConversations(orpc);
 
@@ -120,9 +121,8 @@ function ConversationListItem(selectedCv: ReturnType<typeof useConversations>['c
 
   return (
     <button
-      onClick={() => {
-        markAsRead(selectedCv.id);
-      }}
+      onClick={() => { markAsRead(selectedCv.id); }}
+
       // className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors 
       className={`w-full flex items-center gap-3 px-4 py-3 border-b border-border transition-colors
         ${cuid 
@@ -189,7 +189,16 @@ function ChatWindow({
 
 
 
-function ChatHeader({ conversation }: { conversation: Conversation }) {
+function ChatHeader(
+  { conversation }: 
+  { conversation: Conversation }
+  ) {
+  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
+  const { getById } = useConversations(orpc, cuid);
+
+
+
+
   return (
     <div>
       {/* Chat Header */}
