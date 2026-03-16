@@ -27,12 +27,10 @@ export const conversationRouter = {
 
 
     // Find all Conversations where current user is a participant.
-    //      - includes last message (for sidebar display), and 
-    //      - compute unread count based on lastReadAt of participant and messages createdAt.
-    //      - TODO : fix unreadcount computation (currently is boolean ?)
     listAll : protectedProcedure
         .handler( async ({ context }) => {
             const currentUserId = context.session?.user.id;
+            // 1. Get conv where user is participant
             const conversations = await prisma.conversation.findMany({
                 where: {
                     participants: {some: { userId: currentUserId }}
@@ -46,22 +44,25 @@ export const conversationRouter = {
                 },
             });
 
+            return conversations;
+        
             // 3. Map to desired output
-            return conversations.map(conversation => {
-                // Find lastReadAt for current user && Count unread messages for current user
-                const lastReadAt = conversation.participants.find(p => p.userId === currentUserId)!.lastReadAt!;
-                const count = conversation.messages.filter(msg => msg.createdAt >= lastReadAt).length;
-                return {
-                    id: conversation.id,
-                    participants: conversation.participants.map(p => ({ userId: p.userId })), // list of all participants userIds
-                    lastMessage: conversation.messages[0] ? {
-                        text: conversation.messages[0].text,                // display last msg text in sidebar
-                        senderId: conversation.messages[0].senderId,        // display who sent last msg in sidebar
-                        createdAt: conversation.messages[0].createdAt,      // display when last msg was sent in sidebar
-                    } : null,
-                    unreadCount: count,                                     // display unread count bubble in sidebar    
-                };
-            });
+            // TODO : mapping should be done in the hook
+            // return conversations.map(conversation => {
+            //     // Find lastReadAt for current user && Count unread messages for current user
+            //     const lastReadAt = conversation.participants.find(p => p.userId === currentUserId)!.lastReadAt!;
+            //     const count = conversation.messages.filter(msg => msg.createdAt >= lastReadAt).length;
+            //     return {
+            //         id: conversation.id,
+            //         participants: conversation.participants.map(p => ({ userId: p.userId })), // list of all participants userIds
+            //         lastMessage: conversation.messages[0] ? {
+            //             text: conversation.messages[0].text,                // display last msg text in sidebar
+            //             senderId: conversation.messages[0].senderId,        // display who sent last msg in sidebar
+            //             createdAt: conversation.messages[0].createdAt,      // display when last msg was sent in sidebar
+            //         } : null,
+            //         unreadCount: count,                                     // display unread count bubble in sidebar    
+            //     };
+            // });
         }),
 
 
@@ -71,7 +72,6 @@ export const conversationRouter = {
     create : protectedProcedure
         .input(z.object({ userIds: z.array(z.string()).min(1) }))
         .handler( async ({ input, context }) => {
-            // 1. check if authenticated
             const currentUserId = context.session?.user.id;
 
             // 2. Create conversation with participants
@@ -101,9 +101,11 @@ export const conversationRouter = {
     markRead : protectedProcedure
         .input(z.object({ conversationId: z.string() }))
         .handler( async ({ input, context }) => {
-            // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            // if (!currentUserId) {throw new Error("Not authenticated");}
+
+            // 1. check if user is participant of conversation
+            await ensureParticipant(prisma, input.conversationId, currentUserId);
+
 
             // 2. Update lastReadAt for participant
             await prisma.conversationParticipant.updateMany({

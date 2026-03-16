@@ -62,7 +62,7 @@ export const userRouter = {
 
     // Fetch batch of users by ids (for conversation participants info, etc.)
     search_batch : protectedProcedure
-        .input(z.object({ ids: z.array((z.string()) )})) //! USERS LISTS !
+        .input(z.object({ ids: z.array((z.string()) )})) //! Returns User LIST !
         .handler( async ({ input }) => {
             // Prism query
             const users = await prisma.user.findMany({
