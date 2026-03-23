@@ -30,9 +30,14 @@ type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent:
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
   validateSearch: z.object({
-    cuid: z.string().optional(),
+    cid: z.string().optional(),
   })
 });
+
+// TODO : ================================== 
+//      - SOCKETS : 
+//      - Prisma script seeding
+
 
 
 // ChatLayout
@@ -96,7 +101,7 @@ function ConversationList() {
         <Link 
             key={cv.id}
             to="." 
-            search={(prev) => ({ ...prev, cuid: cv.id })} >
+            search={(prev) => ({ ...prev, cid: cv.id })} >
             <ConversationListItem 
             {...cv}         // pass through the ENTIRE conversation as object
             />
@@ -109,7 +114,7 @@ function ConversationList() {
 function ConversationListItem(
   selectedCv: ReturnType<typeof useConversations>['conversations'][number]
   ) {
-  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
+  const { cid } = Route.useSearch();  // useParam ? No : cid is a query param, not a url/path param.
   const { markAsRead } = useConversations(orpc);
 
   // Extract
@@ -125,7 +130,7 @@ function ConversationListItem(
 
       // className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors 
       className={`w-full flex items-center gap-3 px-4 py-3 border-b border-border transition-colors
-        ${cuid 
+        ${cid 
           ? 'bg-primary text-primary-foreground' 
           : 'bg-sidebar text-sidebar-foreground hover:bg-accent'
       }`}
@@ -189,37 +194,55 @@ function ChatWindow({
 
 
 
-function ChatHeader(
-  { conversation }: 
-  { conversation: Conversation }
-  ) {
-  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
-  const { getById } = useConversations(orpc, cuid);
+function ChatHeader() {
+  const { cid } = Route.useSearch();   // get query param `cid` from URL
+  const { getById } = useConversations(orpc, cid);
+  const conversation = getById.data;   // contains conv data (participants, messages, unread counts)
+
+    if (!conversation) return null; //or a loading placeholder
+
+  // Get participants info
+  const participantsIds = conversation?.participants ?? [];
+  const { byIds } = useUser(orpc);
+  const participants = byIds.users.filter(u => participantsIds.includes(u.id));
+  const participantsNames = participants.map(p => p.name ?? "Unknown");
+
+  // Title Format ("Johnny, Sarah and 2 more.")
+  let title: String;
+  const maxCharLenghtAvailable = 10;   //TODO: get the actual header space available...
+  const maxVisible = 3;
+  if (participantsNames.length <= maxVisible) title = participantsNames.join(', ');
+  else {
+    const visibleNames = participantsNames.slice(0, maxVisible).join(', ');
+    const remaining = participantsNames.length - maxVisible;
+    title = `${visibleNames} & ${remaining} more`
+  }
 
 
-
+    const online = true; //TODO
 
   return (
     <div>
       {/* Chat Header */}
     <div className="bg-background border-b border-border p-4 flex items-center justify-between">
 
-      {/* Left Section : (Avatar, name, active status) */}
+      {/* Left Section : Avatar + name + active status */}
       <div className="flex items-center gap-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl text-primary-foreground">
-            {conversation.avatar}
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl text-primary-foreground">
+            {/* {conversation.avatar} */} // TODO
+            {participantsNames[0]?.[0] ?? "C."}
           </div>
           {/* Active status */}
-          {conversation.online && (
+          {online && (
             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background"></div>
           )}
         </div>
         {/* Name */}
         <div>
-          <h2 className="font-semibold text-foreground">{conversation.name}</h2>
+          <h2 className="font-semibold text-foreground">{title}</h2>
           <p className="text-sm text-muted-foreground">
-            {conversation.online ? 'Active now' : 'Offline'}
+            {online ? 'Active now' : 'Offline'}
           </p>
         </div>
       </div>
@@ -241,9 +264,9 @@ function ChatHeader(
   );
 }
 function ChatArea({ messages }: { messages: Message[] }) {
-  const { cuid } = Route.useSearch();
+  const { cid } = Route.useSearch();
   // const conversationId = Route.useSearch().selectedConversation
-  const {list} = useMessages(orpc, cuid ?? '');
+  const {listMessages} = useMessages(orpc, cid ?? '');
 
 //   type Message = {
 //     messages: {
@@ -289,9 +312,6 @@ function ChatArea({ messages }: { messages: Message[] }) {
   );
 }
 function ChatInput({
-  messageInput,
-  setMessageInput,
-  handleSendMessage,
 }: {
   messageInput: string;
   setMessageInput: (value: string) => void;
@@ -339,7 +359,7 @@ function ChatInput({
 // ======== MAIN APP COMPONENT ========
 export function LiveChatApp() {
   // const [selectedConversation, setSelectedConversation] = useState<number>(1);
-  const { cuid } = Route.useSearch();
+  const { cid } = Route.useSearch();
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -476,8 +496,8 @@ export function LiveChatApp() {
     ],
   };
 
-  const currentConversation = conversations.find((c) => c.id === cuid);
-  const currentMessages = messages[cuid] || [];
+  const currentConversation = conversations.find((c) => c.id === cid);
+  const currentMessages = messages[cid] || [];
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {

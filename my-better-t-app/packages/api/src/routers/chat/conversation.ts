@@ -18,7 +18,7 @@ export const conversationRouter = {
      * 
      * conversation.list() : list all conversations for current user
      * conversation.create({ userIds: string[] }) : create a conv for multiple users.
-     * conversation.markRead({ conversationId }) : mark conversation as read for current user
+     * conversation.markRead({ cid }) : mark conversation as read for current user
      * conversation.get({ id }) : get conversation by id
      * 
      * .list() & .get() : id, participants, lastMessage: { text, senderId, createdAt } | null, unreadCount
@@ -99,18 +99,18 @@ export const conversationRouter = {
     //     - TODO : validation that user is a participant
     
     markRead : protectedProcedure
-        .input(z.object({ conversationId: z.string() }))
+        .input(z.object({ cid: z.string() }))
         .handler( async ({ input, context }) => {
             const currentUserId = context.session?.user.id;
 
             // 1. check if user is participant of conversation
-            await ensureParticipant(prisma, input.conversationId, currentUserId);
+            await ensureParticipant(prisma, input.cid, currentUserId);
 
 
             // 2. Update lastReadAt for participant
             await prisma.conversationParticipant.updateMany({
                 where: {
-                    conversationId: input.conversationId,
+                    cid: input.cid,
                     userId: currentUserId,
                 },
                 data: {
@@ -166,9 +166,9 @@ export const conversationRouter = {
 }
 
 // --- Helpers -----
-async function ensureParticipant(prismaClient: typeof prisma, conversationId: string, userId: string) {
+async function ensureParticipant(prismaClient: typeof prisma, cid: string, userId: string) {
     const isParticipant = await prismaClient.conversationParticipant.findFirst({
-        where: { conversationId, userId },
+        where: { cid, userId },
     });
 
     if (!isParticipant) {

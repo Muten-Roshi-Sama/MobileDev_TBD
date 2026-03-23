@@ -27,16 +27,16 @@ model Conversation {
 //  - one conversation -> many participants (users)
 //  - other metadata : lastReadAt, joinedAt, etc. (specific to each users)
 model ConversationParticipant {
-    conversationId String
+    cid String
     userId         String
 
-    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    conversation Conversation @relation(fields: [cid], references: [id], onDelete: Cascade)
     user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     lastReadAt DateTime?   // markMsgAsRead
     joinedAt   DateTime @default(now())
 
-    @@id([conversationId, userId])  // A user can only appear once per conversation.
+    @@id([cid, userId])  // A user can only appear once per conversation.
     @@index([userId])
 }
 
@@ -46,15 +46,22 @@ model ConversationParticipant {
 // - belongs to a user (senderId)
 model Message {
     id             String   @id @default(cuid())   // Unique msg id.
-    conversationId String
+    cid String
     senderId       String
     text           String
-    createdAt      DateTime @default(now())
 
-    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+    createdAt      DateTime @default(now())    // when msg added to db
+    updatedAt      DateTime @updatedAt         // when metadata, text.. any changes occurs 
+    editedAt       DateTime ?                  // last user edit
+    deletedAt      DateTime ?                  // Soft delete
+    // readAt         DateTime ?                  // ? 
+
+    type           String @default("text")    // text, images, files, ...
+
+    conversation Conversation @relation(fields: [cid], references: [id], onDelete: Cascade)
     sender       User         @relation(fields: [senderId], references: [id])
 
-    @@index([conversationId, createdAt]) // Allows Faster loading of conversation messages ordered by time.
+    @@index([cid, createdAt]) // Allows Faster loading of conversation messages ordered by time.
     @@index([senderId])    // Allows Faster loading of messages by sender
 }
 

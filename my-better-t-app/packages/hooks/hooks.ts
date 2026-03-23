@@ -10,8 +10,6 @@ type ORPC = typeof orpc
 // USER 
 // =========
 export function useUser(orpc: ORPC) {
-    // const {currentUserInfo, searchText, setSearchText} = useUser(orpc)
-
     // ---- CURRENT USER INFO ----
     const queryCurrent = useQuery(orpc.user.current.queryOptions());
     const currentUserInfo = {
@@ -56,77 +54,111 @@ export function useUser(orpc: ORPC) {
     
 
     return {
-        currentUserInfo,
+        currentUserInfo,    // returns User info
 
-        searchText,
-        setSearchText,
-        search,
+        searchText,         // input (what the user typed)
+        setSearchText,      // updates the searchText input
+        search,             // cleaned output of searchQuery (for UI)
+
+        idsList,            //
+        setIdsList,         //
+        byIds               // cleaned output of queryByIds (for UI)
         
-        byIds,
-        setIdsList
     }
 }
 
 // =========
 // Message
 // =========
-export function useMessages(orpc: ORPC, conversationId: string | null) {
-    const [newMessage, setNewMessage] = useState('');
-    const message = useQuery(orpc.message.list.queryOptions({ input: { conversationId: conversationId ?? '' } }));
-    const queryClient = useQueryClient();
+export function useMessages(orpc: ORPC, cid: string | null) {
+    // * Params : cid (when it changes, auto refetches this function too !)
 
+    const queryClient = useQueryClient();  // cache controller
+    const { currentUserInfo } = useUser(orpc);
+    const currentUserId = currentUserInfo.user?.id;
 
     // --- SEND MESSAGE ---
+    const [newMessage, setNewMessage] = useState('');  // Local UI state for chatInput 
     const addMessage = useMutation(orpc.message.send.mutationOptions({
         onMutate: () => {
+            if (!cid || !currentUserId) return; // ignore if undefined
+
+            const tempMessage = {
+                id: `temp-${Date.now()}`,
+                cid,
+                senderId: currentUserId,
+                text: newMessage,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                editedAt: null,
+                deletedAt: null,
+                type: "text",
+            };
+
+
             queryClient.setQueryData(
-                orpc.message.list.queryKey({ input: { conversationId: conversationId! } }),
-                (oldData) => ({...oldData, messages: [...(oldData?.messages ?? []), { id: '', createdAt: new Date(), text: newMessage, senderId: 'me', timestamp: new Date().toISOString(), conversationId: conversationId! }], nextCursor: null})
-            )
+                orpc.message.list.queryKey({ input: { cid } }),
+                (oldData) => {
+                    if (!oldData) return oldData;
+
+                    return {
+                        ...oldData,
+                        messages: [...oldData.messages, tempMessage],
+                    };
+                }
+            );
+
+
+            
         },
-        // AUTO DONE :
+        // INVALIDATION - AUTO DONE :
         // onSettled: () => {
         //     queryClient.invalidateQueries(
-        //         orpc.message.list.key({ conversationId: conversationId ?? '' }),
+        //         orpc.message.list.key({ cid: cid ?? '' }),
         //     );
         // }
     }))
 
 
+    
+
+
+    // ----- LOAD NEXT MESSAGES -----
+    const [cursor, setCursor] = useState<string | undefined>(undefined);   // load next batch of messages using cursor(id of last loaded msg) when user is scrolling up.
+
     // --- LIST MESSAGES ----
     const [limit, setLitmit] = useState(20);
+    const messages = useQuery(orpc.message.list.queryOptions({   // fetch all messages from a conversation
+        input: { cid: cid!, limit, cursor }, 
+        enabled: !!cid 
+    }));
     const listMessages = {
-            messages: message.data?.messages ?? [],
-            nextCursor: message.data?.nextCursor ?? null,
-            isLoading: conversationId ? message.isLoading : false,
-            error: message.error,
-            refetch: message.refetch,
-        };
+            messages: messages.data?.messages.filter(msg => !msg.deletedAt) ?? [],
+            nextCursor: messages.data?.nextCursor ?? null,
+            isLoading: cid ? messages.isLoading : false,
+            error: messages.error,
+            refetch: messages.refetch,
+    };
+
 
     return {
         newMessage,
         setNewMessage,
         
         send() {
-            addMessage.mutate({ conversationId: conversationId ?? '', text: newMessage });
-            setNewMessage('')
+            addMessage.mutate({ cid: cid ?? '', text: newMessage });  // params to pass to orpc send API
+            setNewMessage('')  // clear curr input
         },
         //
         limit,
         setLitmit,
-        list() {
-
-        },
+        cursor,
+        setCursor,
+        listMessages,
     };
 
 }
 
-// TODO: 
-//      - change conversationId to number, and store it as selectedConversation in the url
-//      - remove interfaces and replace by inferred types from Prisma or inherit them directly
-
-//      - SOCKETS : 
-//      - Prisma script seeding
 
 
 
@@ -134,7 +166,7 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
 // =========
 // Conversation
 // =========
-export function useConversations(orpc: ORPC, cuid?: string) {
+export function useConversations(orpc: ORPC, cid?: string) {
     const { data, isLoading, error, refetch } = useQuery( orpc.conversation.listAll.queryOptions() );
     // const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -170,7 +202,7 @@ export function useConversations(orpc: ORPC, cuid?: string) {
                 id: "temp-id",
                 participants: userIds.map((userId) => ({  // participants expect these fields
                     userId,
-                    conversationId: "temp-id",
+                    cid: "temp-id",
                     lastReadAt: null,
                     joinedAt: new Date(),
                 })),
@@ -187,15 +219,15 @@ export function useConversations(orpc: ORPC, cuid?: string) {
     })
     );
 
-    // --- markRead --  const { cuid } = Route.useSearch();  // useParam ? No : cuid is a query param, not a url/path param.
+    // --- markRead --  const { cid } = Route.useSearch();  // useParam ? No : cid is a query param, not a url/path param.
 
     const markAsRead = useMutation(orpc.conversation.markRead.mutationOptions({
-        onMutate: async ({ conversationId }) => {
+        onMutate: async ({ cid }) => {
             // Optimistically update the conversation's lastReadAt for the current user
             queryClient.setQueryData(
                 orpc.conversation.listAll.queryKey(),
                 (oldData) => oldData?.map(cv => {
-                    if (cv.id === conversationId) {
+                    if (cv.id === cid) {
                         return {
                             ...cv, lastReadAt: new Date(), unreadCount: 0,   // update the lastReadAt and reset unreadCount to 0
                         };
@@ -210,12 +242,10 @@ export function useConversations(orpc: ORPC, cuid?: string) {
 
     // --- getById ---
     const getById = useQuery(orpc.conversation.getById.queryOptions({
-        input: { id: cuid ?? '' },            // store the current conv Id in the functions params.
-        enabled: !!cuid,                      // only fetch if cuid exists
+        input: { id: cid ?? '' },            // store the current conv Id in the functions params.
+        enabled: !!cid,                      // only fetch if cid exists
     }))
     
-
-
 
 
     return {
@@ -232,8 +262,8 @@ export function useConversations(orpc: ORPC, cuid?: string) {
         createConversation: (userIds: string[]) => {
             createConversation.mutate({ userIds });
         },
-        markAsRead: (conversationId: string) => {
-            markAsRead.mutate({ conversationId });
+        markAsRead: (cid: string) => {
+            markAsRead.mutate({ cid });
         }
     };
 }
