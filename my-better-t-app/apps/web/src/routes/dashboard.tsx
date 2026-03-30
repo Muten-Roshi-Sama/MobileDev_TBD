@@ -5,7 +5,7 @@ import { getUser } from "@/functions/get-user";
 import { orpc, client } from "@/utils/orpc";
 import React, { useState, useEffect } from "react";
 
-import { useCurrentUser } from "@my-better-t-app/hooks";
+import { useUser } from "@my-better-t-app/hooks";
 
 
 export const Route = createFileRoute("/dashboard")({
@@ -24,10 +24,14 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { user, isLoading, error } = useCurrentUser(orpc);
+  const { currentUserInfo } = useUser(orpc);
+  const {user, isLoading, error} = currentUserInfo;
+
   if (isLoading) {
     return <div className="text-center mt-8">Loading user info...</div>;
   }
+
+  
 
   if (error) {
     return <div className="text-center mt-8 text-red-500">

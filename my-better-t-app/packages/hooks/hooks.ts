@@ -10,7 +10,14 @@ type ORPC = typeof orpc
 // USER 
 // =========
 export function useUser(orpc: ORPC) {
-    // ---- CURRENT USER INFO ----
+    
+    // DESCRIPTION :
+    //      - GET current user data
+    //      - SEARCH users by name/email
+    //      - FETCH batch of users by ids (for conversation participants info, etc.)
+    
+
+    //* ---- CURRENT USER INFO ----
     const queryCurrent = useQuery(orpc.user.current.queryOptions());
     const currentUserInfo = {
         user: queryCurrent.data ?? null,
@@ -35,8 +42,6 @@ export function useUser(orpc: ORPC) {
         error: searchQuery.error,
     }
 
-
-
     // ---- GET USERS BY IDS (BATCH) ----
     const [idsList, setIdsList] = useState<string[]>([]);
     const enabledByIds = idsList.length > 0
@@ -54,7 +59,7 @@ export function useUser(orpc: ORPC) {
     
 
     return {
-        currentUserInfo,    // returns User info
+        currentUserInfo,    // returns User info (user, isLoading, isAuthenticated, error)
 
         searchText,         // input (what the user typed)
         setSearchText,      // updates the searchText input
@@ -62,7 +67,7 @@ export function useUser(orpc: ORPC) {
 
         idsList,            //
         setIdsList,         //
-        byIds               // cleaned output of queryByIds (for UI)
+        byIds,               // cleaned output of queryByIds (for UI)
         
     }
 }
@@ -70,8 +75,16 @@ export function useUser(orpc: ORPC) {
 // =========
 // Message
 // =========
-export function useMessages(orpc: ORPC, cid: string | null) {
-    // * Params : cid (when it changes, auto refetches this function too !)
+export function useMessages(orpc: ORPC, conversationId: string | null) {
+
+
+    // DESCRIPTION :
+    //      - GET messages from a conversation ID.
+    //      - LOAD next messages batch when scrolling (cursor).
+    //      - ADD message to a conversation.   
+    
+    
+    //* Params : conversationId (Note : as a fn param, when it changes, it auto refetches this function too !)
 
     const queryClient = useQueryClient();  // cache controller
     const { currentUserInfo } = useUser(orpc);
@@ -81,11 +94,11 @@ export function useMessages(orpc: ORPC, cid: string | null) {
     const [newMessage, setNewMessage] = useState('');  // Local UI state for chatInput 
     const addMessage = useMutation(orpc.message.send.mutationOptions({
         onMutate: () => {
-            if (!cid || !currentUserId) return; // ignore if undefined
+            if (!conversationId || !currentUserId) return; // ignore if undefined
 
             const tempMessage = {
                 id: `temp-${Date.now()}`,
-                cid,
+                conversationId,
                 senderId: currentUserId,
                 text: newMessage,
                 createdAt: new Date(),
@@ -95,9 +108,8 @@ export function useMessages(orpc: ORPC, cid: string | null) {
                 type: "text",
             };
 
-
             queryClient.setQueryData(
-                orpc.message.list.queryKey({ input: { cid } }),
+                orpc.message.list.queryKey({ input: { conversationId } }),
                 (oldData) => {
                     if (!oldData) return oldData;
 
@@ -107,21 +119,14 @@ export function useMessages(orpc: ORPC, cid: string | null) {
                     };
                 }
             );
-
-
-            
         },
         // INVALIDATION - AUTO DONE :
         // onSettled: () => {
         //     queryClient.invalidateQueries(
-        //         orpc.message.list.key({ cid: cid ?? '' }),
+        //         orpc.message.list.key({ conversationId: conversationId ?? '' }),
         //     );
         // }
     }))
-
-
-    
-
 
     // ----- LOAD NEXT MESSAGES -----
     const [cursor, setCursor] = useState<string | undefined>(undefined);   // load next batch of messages using cursor(id of last loaded msg) when user is scrolling up.
@@ -129,13 +134,13 @@ export function useMessages(orpc: ORPC, cid: string | null) {
     // --- LIST MESSAGES ----
     const [limit, setLitmit] = useState(20);
     const messages = useQuery(orpc.message.list.queryOptions({   // fetch all messages from a conversation
-        input: { cid: cid!, limit, cursor }, 
-        enabled: !!cid 
+        input: { conversationId: conversationId!, limit, cursor }, 
+        enabled: !!conversationId 
     }));
     const listMessages = {
-            messages: messages.data?.messages.filter(msg => !msg.deletedAt) ?? [],
+            messages: messages.data?.messages.filter(msg => !msg.deletedAt) ?? [], // TODO: filters out deleted messages here or in backend ?
             nextCursor: messages.data?.nextCursor ?? null,
-            isLoading: cid ? messages.isLoading : false,
+            isLoading: conversationId ? messages.isLoading : false,
             error: messages.error,
             refetch: messages.refetch,
     };
@@ -146,7 +151,7 @@ export function useMessages(orpc: ORPC, cid: string | null) {
         setNewMessage,
         
         send() {
-            addMessage.mutate({ cid: cid ?? '', text: newMessage });  // params to pass to orpc send API
+            addMessage.mutate({ conversationId: conversationId ?? '', text: newMessage });  // params to pass to orpc send API
             setNewMessage('')  // clear curr input
         },
         //
@@ -156,7 +161,6 @@ export function useMessages(orpc: ORPC, cid: string | null) {
         setCursor,
         listMessages,
     };
-
 }
 
 
@@ -166,7 +170,15 @@ export function useMessages(orpc: ORPC, cid: string | null) {
 // =========
 // Conversation
 // =========
-export function useConversations(orpc: ORPC, cid?: string) {
+export function useConversations(orpc: ORPC, conversationId?: string) {
+
+    // DESCRIPTION :
+    //      - GET all conversation where current user is a participant.
+    //      - CREATE conversation with current user and other users.
+    //      - UPDATE current conversation (mark as Read).
+    //      - GET conversation by ID.
+    // 
+
     const { data, isLoading, error, refetch } = useQuery( orpc.conversation.listAll.queryOptions() );
     // const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -202,7 +214,7 @@ export function useConversations(orpc: ORPC, cid?: string) {
                 id: "temp-id",
                 participants: userIds.map((userId) => ({  // participants expect these fields
                     userId,
-                    cid: "temp-id",
+                    conversationId: "temp-id",
                     lastReadAt: null,
                     joinedAt: new Date(),
                 })),
@@ -219,15 +231,15 @@ export function useConversations(orpc: ORPC, cid?: string) {
     })
     );
 
-    // --- markRead --  const { cid } = Route.useSearch();  // useParam ? No : cid is a query param, not a url/path param.
+    // --- markRead --  const { conversationId } = Route.useSearch();  // useParam ? No : conversationId is a query param, not a url/path param.
 
     const markAsRead = useMutation(orpc.conversation.markRead.mutationOptions({
-        onMutate: async ({ cid }) => {
+        onMutate: async ({ conversationId }) => {
             // Optimistically update the conversation's lastReadAt for the current user
             queryClient.setQueryData(
                 orpc.conversation.listAll.queryKey(),
                 (oldData) => oldData?.map(cv => {
-                    if (cv.id === cid) {
+                    if (cv.id === conversationId) {
                         return {
                             ...cv, lastReadAt: new Date(), unreadCount: 0,   // update the lastReadAt and reset unreadCount to 0
                         };
@@ -242,8 +254,8 @@ export function useConversations(orpc: ORPC, cid?: string) {
 
     // --- getById ---
     const getById = useQuery(orpc.conversation.getById.queryOptions({
-        input: { id: cid ?? '' },            // store the current conv Id in the functions params.
-        enabled: !!cid,                      // only fetch if cid exists
+        input: { id: conversationId ?? '' },            // store the current conv Id in the functions params.
+        enabled: !!conversationId,                      // only fetch if conversationId exists
     }))
     
 
@@ -262,8 +274,8 @@ export function useConversations(orpc: ORPC, cid?: string) {
         createConversation: (userIds: string[]) => {
             createConversation.mutate({ userIds });
         },
-        markAsRead: (cid: string) => {
-            markAsRead.mutate({ cid });
+        markAsRead: (conversationId: string) => {
+            markAsRead.mutate({ conversationId });
         }
     };
 }

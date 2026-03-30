@@ -13,8 +13,8 @@ import { protectedProcedure } from "../../index";
 
 export const messageRouter = {
     /**
-     * message.send({ cid, text }) : send message in conversation
-     * message.list({ cid, cursor?, limit?} ) : list messages in conversation with pagination
+     * message.send({ conversationId, text }) : send message in conversation
+     * message.list({ conversationId, cursor?, limit?} ) : list messages in conversation with pagination
      * 
      */
 
@@ -22,19 +22,19 @@ export const messageRouter = {
     //      1. check if user is participant of conversation
     //      2. Create message in db AND update conversation's updatedAt to now (in a transaction for atomicity)
     send: protectedProcedure
-        .input(z.object({ cid: z.string(), text: z.string().min(1) }))
+        .input(z.object({ conversationId: z.string(), text: z.string().min(1) }))
         .handler(async ({ input, context }) => {
             const senderId = context.session?.user.id;
             // if (!senderId) {throw new Error("Not authenticated");}
 
             // 1. check if user is participant of conversation
-            await ensureParticipant(prisma, input.cid, senderId);
+            await ensureParticipant(prisma, input.conversationId, senderId);
 
             // 2. Create message in db AND update conversation's updatedAt to now (in a transaction for atomicity)
             const [message] = await prisma.$transaction([
                 prisma.message.create({
                     data: {
-                        cid: input.cid,
+                        conversationId: input.conversationId,
                         senderId,
                         text: input.text,
                         type: "text",
@@ -48,7 +48,7 @@ export const messageRouter = {
                 
                 // Update conversation's updatedAt to now
                 prisma.conversation.update({
-                    where: { id: input.cid },
+                    where: { id: input.conversationId },
                     data: { updatedAt: new Date() },
                 }),
             ]);
@@ -63,19 +63,19 @@ export const messageRouter = {
     //      3. Fetch messages with pagination (cursor-based)
     list: protectedProcedure
         .input(z.object({ 
-            cid: z.string(), 
-            cursor: z.string().nullish(), 
+            conversationId: z.string(), 
+            cursor: z.string().nullish(),                   // ID of the last loaded message
             limit: z.number().min(1).max(100).default(20) 
         }))
         .handler(async ({ input, context }) => {
             const currentUserId = context.session?.user.id;
 
             // 1. check if user is participant of conversation
-            await ensureParticipant(prisma, input.cid, currentUserId);
+            await ensureParticipant(prisma, input.conversationId, currentUserId);
 
             // 2. Fetch messages with pagination
             const messages = await prisma.message.findMany({
-                where: { cid: input.cid },
+                where: { conversationId: input.conversationId },
                 orderBy: { createdAt: "desc" },                         // newest msg first
                 take: input.limit + 1,                                  // fetch one extra to check if there's a next page
                 cursor: input.cursor ? { id: input.cursor } : undefined,
@@ -98,9 +98,9 @@ export const messageRouter = {
 }
 
 // --- Helpers -----
-async function ensureParticipant(prismaClient: typeof prisma, cid: string, userId: string) {
+async function ensureParticipant(prismaClient: typeof prisma, conversationId: string, userId: string) {
     const isParticipant = await prismaClient.conversationParticipant.findFirst({
-        where: { cid, userId },
+        where: { conversationId, userId },
     });
 
     if (!isParticipant) {

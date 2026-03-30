@@ -27,16 +27,16 @@ model Conversation {
 //  - one conversation -> many participants (users)
 //  - other metadata : lastReadAt, joinedAt, etc. (specific to each users)
 model ConversationParticipant {
-    cid String
+    conversationId String
     userId         String
 
-    conversation Conversation @relation(fields: [cid], references: [id], onDelete: Cascade)
+    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
     user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     lastReadAt DateTime?   // markMsgAsRead
     joinedAt   DateTime @default(now())
 
-    @@id([cid, userId])  // A user can only appear once per conversation.
+    @@id([conversationId, userId])  // A user can only appear once per conversation.
     @@index([userId])
 }
 
@@ -46,7 +46,7 @@ model ConversationParticipant {
 // - belongs to a user (senderId)
 model Message {
     id             String   @id @default(cuid())   // Unique msg id.
-    cid String
+    conversationId String
     senderId       String
     text           String
 
@@ -58,10 +58,10 @@ model Message {
 
     type           String @default("text")    // text, images, files, ...
 
-    conversation Conversation @relation(fields: [cid], references: [id], onDelete: Cascade)
+    conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
     sender       User         @relation(fields: [senderId], references: [id])
 
-    @@index([cid, createdAt]) // Allows Faster loading of conversation messages ordered by time.
+    @@index([conversationId, createdAt]) // Allows Faster loading of conversation messages ordered by time.
     @@index([senderId])    // Allows Faster loading of messages by sender
 }
 

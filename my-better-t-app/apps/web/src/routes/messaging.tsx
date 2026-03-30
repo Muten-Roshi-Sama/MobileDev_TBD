@@ -30,7 +30,7 @@ type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent:
 export const Route = createFileRoute("/messaging")({
   component: LiveChatApp,
   validateSearch: z.object({
-    cid: z.string().optional(),
+    cid: z.string().optional(),   // abbrev. for "conversationId".
   })
 });
 
@@ -217,8 +217,6 @@ function ChatHeader() {
     const remaining = participantsNames.length - maxVisible;
     title = `${visibleNames} & ${remaining} more`
   }
-
-
     const online = true; //TODO
 
   return (
@@ -263,34 +261,24 @@ function ChatHeader() {
     </div>
   );
 }
-function ChatArea({ messages }: { messages: Message[] }) {
-  const { cid } = Route.useSearch();
-  // const conversationId = Route.useSearch().selectedConversation
-  const {listMessages} = useMessages(orpc, cid ?? '');
 
-//   type Message = {
-//     messages: {
-//         id: string;
-//         createdAt: Date;
-//         text: string;
-//         conversationId: string;
-//         senderId: string;
-//     }[];
-//     nextCursor: string | null;
-// }
-  
+function ChatArea() {
+  const { cid } = Route.useSearch();
+  const {listMessages} = useMessages(orpc, cid ?? '');
+  const messages = listMessages.messages;
+
   return (
       <div className="p-4 space-y-4">
         {/* Messages Area */}
-          const 
+          
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.senderId === cid ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                msg.sender === 'me'
+                msg.senderId === cid
                   // ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
                   // : 'bg-white text-gray-900 rounded-bl-none'
                   ? 'bg-(--bubble-me) text-(--bubble-me-foreground) rounded-br-none'
@@ -300,10 +288,10 @@ function ChatArea({ messages }: { messages: Message[] }) {
               <p className="break-words">{msg.text}</p>
               <p
                 className={`text-xs mt-1 ${
-                  msg.sender === 'me' ? 'text-bubble-me-foreground' : 'text-gray-500'
+                  msg.senderId === cid ? 'text-bubble-me-foreground' : 'text-gray-500'
                 }`}
               >
-                {msg.timestamp}
+                {msg.updatedAt.toString()}
               </p>
             </div>
           </div>
@@ -311,20 +299,23 @@ function ChatArea({ messages }: { messages: Message[] }) {
       </div>
   );
 }
-function ChatInput({
-}: {
-  messageInput: string;
-  setMessageInput: (value: string) => void;
-  handleSendMessage: () => void;
-}) {
-  const conversationId = Route.useSearch().selectedConversation
-  const {send, setNewMessage, newMessage} = useMessages(orpc, conversationId)
+
+
+function ChatInput(
+  // {}: {
+  // messageInput: string;
+  // setMessageInput: (value: string) => void;
+  // handleSendMessage: () => void;
+  // }
+) {
+  const { cid } = Route.useSearch();
+  const {send, setNewMessage, newMessage} = useMessages(orpc, cid ?? '');  // ? conversationId=cid
 
   
   return (
-    <div className="p-4 border-t bg-[var(--background)] flex items-end gap-2">
-      <button className="p-2 hover:bg-[var(--hover)] rounded-full transition-colors">
-        <Paperclip className="w-5 h-5 text-[var(--foreground)]" />
+    <div className="p-4 border-t bg-background flex items-end gap-2">
+      <button className="p-2 hover:bg-(--hover) rounded-full transition-colors">
+        <Paperclip className="w-5 h-5 text-foreground" />
       </button>
       <div className="flex-1 relative">
         <textarea
@@ -364,147 +355,147 @@ export function LiveChatApp() {
   const [searchQuery, setSearchQuery] = useState('');
 
 
-  const conversations: Conversation[] = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      avatar: '👩',
-      lastMessage: 'Hey! How are you doing?',
-      timestamp: '2m ago',
-      unread: 2,
-      online: true,
-    },
-    {
-      id: 2,
-      name: 'Mike Chen',
-      avatar: '👨',
-      lastMessage: 'Thanks for the update!',
-      timestamp: '1h ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 3,
-      name: 'Emily Davis',
-      avatar: '👩‍🦰',
-      lastMessage: 'See you tomorrow',
-      timestamp: '3h ago',
-      unread: 0,
-      online: false,
-    },
-    {
-      id: 4,
-      name: 'Alex Rivera',
-      avatar: '🧑',
-      lastMessage: 'Can you send me the files?',
-      timestamp: '1d ago',
-      unread: 1,
-      online: false,
-    },
-    {
-      id: 5,
-      name: 'Jessica Lee',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 6,
-      name: 'Jonas Kraszinski',
-      avatar: '🧑',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 7,
-      name: 'Karim Benzema',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 8,
-      name: 'Kylian George ',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 9,
-      name: 'Andre Kandinski',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 10,
-      name: 'Andre Kandinski',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-    {
-      id: 11,
-      name: 'Andre Kandinski',
-      avatar: '👩‍💼',
-      lastMessage: 'Perfect! Talk soon.',
-      timestamp: '2d ago',
-      unread: 0,
-      online: true,
-    },
-  ];
+  // const conversations: Conversation[] = [
+  //   {
+  //     id: 1,
+  //     name: 'Sarah Johnson',
+  //     avatar: '👩',
+  //     lastMessage: 'Hey! How are you doing?',
+  //     timestamp: '2m ago',
+  //     unread: 2,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Mike Chen',
+  //     avatar: '👨',
+  //     lastMessage: 'Thanks for the update!',
+  //     timestamp: '1h ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'Emily Davis',
+  //     avatar: '👩‍🦰',
+  //     lastMessage: 'See you tomorrow',
+  //     timestamp: '3h ago',
+  //     unread: 0,
+  //     online: false,
+  //   },
+  //   {
+  //     id: 4,
+  //     name: 'Alex Rivera',
+  //     avatar: '🧑',
+  //     lastMessage: 'Can you send me the files?',
+  //     timestamp: '1d ago',
+  //     unread: 1,
+  //     online: false,
+  //   },
+  //   {
+  //     id: 5,
+  //     name: 'Jessica Lee',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 6,
+  //     name: 'Jonas Kraszinski',
+  //     avatar: '🧑',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 7,
+  //     name: 'Karim Benzema',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 8,
+  //     name: 'Kylian George ',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 9,
+  //     name: 'Andre Kandinski',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 10,
+  //     name: 'Andre Kandinski',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  //   {
+  //     id: 11,
+  //     name: 'Andre Kandinski',
+  //     avatar: '👩‍💼',
+  //     lastMessage: 'Perfect! Talk soon.',
+  //     timestamp: '2d ago',
+  //     unread: 0,
+  //     online: true,
+  //   },
+  // ];
 
-  const messages: Record<number, Message[]> = {
-    1: [
-      { id: 1, text: 'Hey there!', sender: 'other', timestamp: '10:30 AM' },
-      { id: 2, text: 'Hi! How can I help you?', sender: 'me', timestamp: '10:31 AM' },
-      { id: 3, text: 'I wanted to ask about the project', sender: 'other', timestamp: '10:32 AM' },
-      { id: 4, text: 'Sure, what would you like to know?', sender: 'me', timestamp: '10:33 AM' },
-      { id: 5, text: 'When is the deadline?', sender: 'other', timestamp: '10:34 AM' },
-      { id: 6, text: 'The deadline is next Friday', sender: 'me', timestamp: '10:35 AM' },
-      { id: 7, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-      { id: 8, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-      { id: 9, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-      { id: 10, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-      { id: 11, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-      { id: 12, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-    ],
-    2: [
-      { id: 1, text: 'Thanks for the update!', sender: 'other', timestamp: '9:15 AM' },
-      { id: 2, text: 'No problem!', sender: 'me', timestamp: '9:16 AM' },
-    ],
-    3: [
-      { id: 1, text: 'See you tomorrow', sender: 'other', timestamp: 'Yesterday' },
-    ],
-    4: [
-      { id: 1, text: 'Can you send me the files?', sender: 'other', timestamp: 'Yesterday' },
-    ],
-    5: [
-      { id: 1, text: 'Perfect! Talk soon.', sender: 'other', timestamp: '2 days ago' },
-    ],
-  };
+  // const messages: Record<number, Message[]> = {
+  //   1: [
+  //     { id: 1, text: 'Hey there!', sender: 'other', timestamp: '10:30 AM' },
+  //     { id: 2, text: 'Hi! How can I help you?', sender: 'me', timestamp: '10:31 AM' },
+  //     { id: 3, text: 'I wanted to ask about the project', sender: 'other', timestamp: '10:32 AM' },
+  //     { id: 4, text: 'Sure, what would you like to know?', sender: 'me', timestamp: '10:33 AM' },
+  //     { id: 5, text: 'When is the deadline?', sender: 'other', timestamp: '10:34 AM' },
+  //     { id: 6, text: 'The deadline is next Friday', sender: 'me', timestamp: '10:35 AM' },
+  //     { id: 7, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //     { id: 8, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //     { id: 9, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //     { id: 10, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //     { id: 11, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //     { id: 12, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
+  //   ],
+  //   2: [
+  //     { id: 1, text: 'Thanks for the update!', sender: 'other', timestamp: '9:15 AM' },
+  //     { id: 2, text: 'No problem!', sender: 'me', timestamp: '9:16 AM' },
+  //   ],
+  //   3: [
+  //     { id: 1, text: 'See you tomorrow', sender: 'other', timestamp: 'Yesterday' },
+  //   ],
+  //   4: [
+  //     { id: 1, text: 'Can you send me the files?', sender: 'other', timestamp: 'Yesterday' },
+  //   ],
+  //   5: [
+  //     { id: 1, text: 'Perfect! Talk soon.', sender: 'other', timestamp: '2 days ago' },
+  //   ],
+  // };
 
-  const currentConversation = conversations.find((c) => c.id === cid);
-  const currentMessages = messages[cid] || [];
+  // const currentConversation = conversations.find((c) => c.id === cid);
+  // const currentMessages = messages[cid] || [];
 
-  const handleSendMessage = () => {
-    if (messageInput.trim()) {
-      // Handle sending message (mock functionality)
-      setMessageInput('');
-    }
-  };
+  // const handleSendMessage = () => {
+  //   if (messageInput.trim()) {
+  //     // Handle sending message (mock functionality)
+  //     setMessageInput('');
+  //   }
+  // };
 
   // const filteredConversations = conversations.filter((conv) =>
   //   conv.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -527,9 +518,9 @@ export function LiveChatApp() {
 
         {/* RIGHT */}
         <ChatWindow>
-          <ChatHeader conversation={currentConversation!} />{/* recipients name, picture, active status and conversations settings + call button... */}
-          <ChatArea messages={currentMessages} />{/* List of messages in the conversation */}
-          <ChatInput messageInput={messageInput} setMessageInput={setMessageInput} handleSendMessage={handleSendMessage} />{/* Input field to type and send new messages */}
+          <ChatHeader/>{/* recipients name, picture, active status and conversations settings + call button... */}
+          <ChatArea/>{/* List of messages in the conversation */}
+          <ChatInput/>{/* Input field to type and send new messages */}
         </ChatWindow>
 
       </ChatLayout>
