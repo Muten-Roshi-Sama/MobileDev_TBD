@@ -9,20 +9,31 @@
       "default": "./src/*.ts"
     }
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force",
+    "db:fresh": "prisma migrate reset --force && prisma db seed",
     "db:start": "docker compose up -d",
     "db:watch": "docker compose up",
     "db:stop": "docker compose stop",
     "db:down": "docker compose down"
   },
   "dependencies": {
+    "@my-better-t-app/api": "workspace:*",
     "@my-better-t-app/env": "workspace:*",
+    "@my-better-t-app/auth": "workspace:*",
+    "@orpc/server": "catalog:",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "catalog:",
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "catalog:",
     "pg": "^8.17.1",
     "zod": "catalog:"
@@ -31,6 +42,7 @@
     "@my-better-t-app/config": "workspace:*",
     "@types/pg": "^8.16.0",
     "prisma": "^7.2.0",
+    "tsx": "^4.21.0",
     "typescript": "catalog:"
   }
 }

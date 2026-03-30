@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { use, useState } from "react";
 import { orpc, queryClient } from "../../apps/web/src/utils/orpc";
 import type { set } from "zod";
@@ -86,7 +86,7 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
     
     //* Params : conversationId (Note : as a fn param, when it changes, it auto refetches this function too !)
 
-    const queryClient = useQueryClient();  // cache controller
+    // const queryClient = useQueryClient();  // cache controller: see import 
     const { currentUserInfo } = useUser(orpc);
     const currentUserId = currentUserInfo.user?.id;
 

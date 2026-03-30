@@ -12,17 +12,11 @@ import { protectedProcedure } from "../../index";
 
 export const conversationRouter = {
     /**
-     * 1. List all conversations for sidebar. (see Mockup : last message, unread count bubble, )
-     * 2. Create/get a conversation.
-     * 3. Update read/unread status.
-     * 
-     * conversation.list() : list all conversations for current user
-     * conversation.create({ userIds: string[] }) : create a conv for multiple users.
-     * conversation.markRead({ conversationId }) : mark conversation as read for current user
-     * conversation.get({ id }) : get conversation by id
-     * 
-     * .list() & .get() : id, participants, lastMessage: { text, senderId, createdAt } | null, unreadCount
-     * 
+     * .listAll(currentUserId) : Find all Conversations where current user is a participant.
+     * .create({ userIds: z.array(z.string()).min(1) }) : Create new conversation using the provided userIds list. 
+     * .markRead({ conversationId }): Mark conversation as read for current user (update lastReadAt to now) (update for conversation participant, not user directly.)
+     * .getById({ conversationId }) : Find conversation by id, including participants, last message and unread count for current user.
+
      */
 
 
@@ -97,7 +91,6 @@ export const conversationRouter = {
     // Mark conversation as read for current user (update lastReadAt to now)
     //     - TODO : validation that conversation exists
     //     - TODO : validation that user is a participant
-    
     markRead : protectedProcedure
         .input(z.object({ conversationId: z.string() }))
         .handler( async ({ input, context }) => {
@@ -107,7 +100,7 @@ export const conversationRouter = {
             await ensureParticipant(prisma, input.conversationId, currentUserId);
 
 
-            // 2. Update lastReadAt for participant
+            // 2. Update lastReadAt for participant (NOT user !)
             await prisma.conversationParticipant.updateMany({
                 where: {
                     conversationId: input.conversationId,

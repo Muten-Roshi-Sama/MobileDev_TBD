@@ -10,8 +10,9 @@ import { protectedProcedure } from "../../index";
 
 export const userRouter = {
     /**
-     * getCurrentUserInfo : get current user info (id, name, email, image, createdAt, updatedAt)
+     * current : get current user info (id, name, email, image, createdAt, updatedAt)
      * search({ query: string }) : search users by name or email
+     * search_batch : 
      */
 
 
