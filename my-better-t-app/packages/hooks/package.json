@@ -3,13 +3,20 @@
   "main": "hooks.ts",
   "type": "module",
   "private": true,
+
+  "peerDependencies": {
+    "react": "catalog:",
+    "@tanstack/react-query": "catalog:"
+  },
+
   "dependencies": {
     "@my-better-t-app/api": "workspace:*",
     "@my-better-t-app/auth": "workspace:*",
     "@orpc/server": "catalog:",
-    "@orpc/tanstack-query": "catalog:",
-    "@tanstack/react-query": "^5.90.20",
-    "@types/react": "^19.2.13",
-    "react": "^19.2.4"
+    "@orpc/tanstack-query": "catalog:"
+  },
+
+  "devDependencies": {
+    "@types/react": "catalog:"
   }
 }

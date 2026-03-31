@@ -16,7 +16,6 @@ export const conversationRouter = {
      * .create({ userIds: z.array(z.string()).min(1) }) : Create new conversation using the provided userIds list. 
      * .markRead({ conversationId }): Mark conversation as read for current user (update lastReadAt to now) (update for conversation participant, not user directly.)
      * .getById({ conversationId }) : Find conversation by id, including participants, last message and unread count for current user.
-
      */
 
 
@@ -124,7 +123,6 @@ export const conversationRouter = {
         .handler( async ({ input, context }) => {
             // 1. check if authenticated
             const currentUserId = context.session?.user.id;
-            // if (!currentUserId) {throw new Error("Not authenticated");}
 
             // 2. Find conversation by id
             const conversation = await prisma.conversation.findUnique({
@@ -138,13 +136,16 @@ export const conversationRouter = {
                 },
             });
 
-            if (!conversation) {
-                throw new Error("Conversation not found");
-            }
+            if (!conversation) { throw new Error("Conversation not found"); }
 
-            const lastReadAt = conversation.participants.find(p => p.userId === currentUserId)!.lastReadAt!;
-            const count = conversation.messages.filter(msg => msg.createdAt >= lastReadAt).length;
+            // await ensureParticipant(prisma, input.id, currentUserId); //TODO: include or not ?
 
+
+            const participant = conversation.participants.find(
+                (p) => p.userId === currentUserId,
+            );
+            const lastReadAt = participant?.lastReadAt ?? new Date(0);
+            const unreadCount = conversation.messages.filter((msg) => msg.createdAt > lastReadAt,).length;
             return {
                 id: conversation.id,
                 participants: conversation.participants.map(p => p.userId),
@@ -153,7 +154,7 @@ export const conversationRouter = {
                     senderId: conversation.messages[0].senderId,
                     createdAt: conversation.messages[0].createdAt,
                 } : null,
-                unreadCount: count,
+                unreadCount,
             };
         }), 
 }

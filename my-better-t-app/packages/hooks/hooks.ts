@@ -5,6 +5,7 @@ import type { set } from "zod";
 import type { get } from "http";
 
 
+
 type ORPC = typeof orpc
 
 // =========
@@ -180,6 +181,8 @@ export function useConversations(orpc: ORPC, conversationId?: string) {
     //      - GET conversation by ID.
     // 
 
+    const { currentUserInfo } = useUser(orpc);
+    const currentUserId = currentUserInfo.user?.id;
     const { data, isLoading, error, refetch } = useQuery( orpc.conversation.listAll.queryOptions() );
     // const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -188,16 +191,19 @@ export function useConversations(orpc: ORPC, conversationId?: string) {
     //      - includes last message (for sidebar display) ?
     //      - compute unread count based on lastReadAt of participant and messages createdAt.
     const convs = data?.map(cv => {
-        const lastReadAt = cv.participants.find(p => p.userId === 'me')!.lastReadAt!;
+        const participant = cv.participants.find((p) => p.userId === currentUserId);
+        const lastReadAt = participant?.lastReadAt ?? new Date(0);
         const count = cv.messages.filter(msg => msg.createdAt >= lastReadAt).length;
+        
         return {
             id: cv.id,
             participants: cv.participants.map(p => ({ userId: p.userId })), // list of all participants userIds
-            lastMessage: cv.messages[0] ? {
-                text: cv.messages[0].text,                // display last msg text in sidebar
-                senderId: cv.messages[0].senderId,        // display who sent last msg in sidebar
-                createdAt: cv.messages[0].createdAt,      // display when last msg was sent in sidebar
-            } : null,
+            lastMessage: cv.messages[0] 
+                ? {
+                    text: cv.messages[0].text,                // display last msg text in sidebar
+                    senderId: cv.messages[0].senderId,        // display who sent last msg in sidebar
+                    createdAt: cv.messages[0].createdAt,      // display when last msg was sent in sidebar
+                } : null,
             unreadCount: count,                                     // display unread count bubble in sidebar    
         };
     }

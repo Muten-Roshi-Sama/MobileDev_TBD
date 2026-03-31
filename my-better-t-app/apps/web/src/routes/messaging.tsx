@@ -197,13 +197,13 @@ function ChatWindow({
 function ChatHeader() {
   const { cid } = Route.useSearch();   // get query param `cid` from URL
   const { getById } = useConversations(orpc, cid);
+  const { byIds } = useUser(orpc);
   const conversation = getById.data;   // contains conv data (participants, messages, unread counts)
 
     if (!conversation) return null; //or a loading placeholder
 
   // Get participants info
   const participantsIds = conversation?.participants ?? [];
-  const { byIds } = useUser(orpc);
   const participants = byIds.users.filter(u => participantsIds.includes(u.id));
   const participantsNames = participants.map(p => p.name ?? "Unknown");
 

@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { orpc } from "@/utils/orpc";
 
-import { seedUsers } from "@/dev/dev-seed";
+import { seedAll, seedConversationsAndMessages, seedUsers } from "@/dev/dev-seed";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
@@ -21,18 +21,78 @@ const TITLE_TEXT = `
 
 
 
+function SeedLayout(){
+  const [seedState, setSeedState] = useState("");
+
+  const handleSeedUsers = async () => {
+    setSeedState("Seeding users...");
+    const result = await seedUsers();
+    setSeedState(JSON.stringify(result, null, 2));
+  };
+
+  const handleSeedConversations = async () => {
+    setSeedState("Seeding conversations and messages...");
+    const result = await seedConversationsAndMessages();
+    setSeedState(JSON.stringify(result, null, 2));
+  };
+
+  const handleSeedAll = async () => {
+    setSeedState("Seeding everything...");
+    const result = await seedAll();
+    setSeedState(JSON.stringify(result, null, 2));
+  };
+
+  return (
+    <section className="rounded-lg border p-4">
+        <h2 className="mb-2 font-medium">Dev Tools</h2>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleSeedUsers}
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          >
+            Seed test users
+          </button>
+
+          <button
+            onClick={handleSeedConversations}
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          >
+            Seed conversations + messages
+          </button>
+
+          <button
+            onClick={handleSeedAll}
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          >
+            Seed all
+          </button>
+        </div>
+
+        {seedState ? (
+          <pre className="mt-4 whitespace-pre-wrap rounded bg-muted p-3 text-sm">
+            {seedState}
+          </pre>
+        ) : null}
+      </section>
+  )
+
+
+}
+
 // =====================================
 
 function HomeComponent() {
   const healthCheck = useQuery(orpc.healthCheck.queryOptions());
 
   // DEV
-  const [seedState, setSeedState] = useState("");
-  const handleSeed = async () => {
-    setSeedState("Seeding...");
-    const result = await seedUsers();
-    setSeedState(JSON.stringify(result, null, 2));
-  };
+  
+
+
+
+
+
+
 
   // ----------------------------
   return (
@@ -57,23 +117,8 @@ function HomeComponent() {
           
         </section>
 
-        {/* DEV */}
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">Dev Tools</h2>
-          <button
-            onClick={handleSeed}
-            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-          >
-            Seed test users
-          </button>
-
-          {seedState ? (
-            <pre className="mt-4 whitespace-pre-wrap rounded bg-muted p-3 text-sm">
-              {seedState}
-            </pre>
-          ) : null}
-        </section>
-
+        <SeedLayout>
+        </SeedLayout>
 
       </div>
     </div>
