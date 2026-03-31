@@ -450,6 +450,9 @@ importers:
       '@my-better-t-app/api':
         specifier: workspace:*
         version: link:../api
+      '@my-better-t-app/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@my-better-t-app/env':
         specifier: workspace:*
         version: link:../env
@@ -521,6 +524,9 @@ importers:
       '@my-better-t-app/api':
         specifier: workspace:*
         version: link:../api
+      '@my-better-t-app/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@orpc/server':
         specifier: 'catalog:'
         version: 1.13.4(@opentelemetry/api@1.9.0)(ws@8.19.0)

@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@my-better-t-app/api": "workspace:*",
+    "@my-better-t-app/auth": "workspace:*",
     "@orpc/server": "catalog:",
     "@orpc/tanstack-query": "catalog:",
     "@tanstack/react-query": "^5.90.20",

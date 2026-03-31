@@ -1,105 +1,133 @@
-// prisma/seed.ts
-import type { Prisma } from './generated/client';
+// // prisma/seed.ts
+// import type { Prisma } from './generated/client';
 
 
-// do not use hooks, use orpc instead
-// import { useUser,useMessages, useConversations } from '@my-better-t-app/hooks'; 
+// // do not use hooks, use orpc instead
+// // import { useUser,useMessages, useConversations } from '@my-better-t-app/hooks'; 
 
-// import { useQuery, useQueryClient } from "@tanstack/react-query";
-// import { orpc, queryClient } from "../../apps/web/src/utils/orpc";
-
-
-import prisma from '../src/index'
-import { auth } from '@my-better-t-app/auth'
-import { createRouterClient } from "@orpc/server"
-import { appRouter } from "../../api/src/routers/index"
+// // import { useQuery, useQueryClient } from "@tanstack/react-query";
+// // import { orpc, queryClient } from "../../apps/web/src/utils/orpc";
 
 
-
-const api = createRouterClient(appRouter, {
-  context: async () => ({
-    session: {
-      session: {
-        id: 'seed-session-id',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: 'u1',
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
-        token: 'seed-token',
-      },
-      user: {
-        id: 'u1',
-        name: 'Alice',
-        email: 'alice@example.com',
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    }
-  })
-})
-
-
-// Create user with Better-Auth API (handles password hashing automatically)
-await auth.api.signUpEmail({
-  body: {
-    email: 'alice@example.com',
-    password: 'password123',
-    name: 'Alice',
-  }
-})
-
-
-
-
-await user.create
-await api.conversation.create({ userIds: ['u2', 'u3'] })
-await api.message.send({ conversationId: 'c1', text: 'Hello' })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//! DIRECT prisma calls
 // import prisma from '../src/index'
+// import { authClient } from "@/lib/auth-client";
 
-// // CREATE CONVERSATION
-// await prisma.conversation.create({
-//   data: {
-//     participants: {
-//       create: [
-//         { userId: 'u1' },
-//         { userId: 'u2' }
-//       ]
-//     }
-//   }
-// })
+// // import { appRouter } from "../../api/src/routers/index"
 
-// // SEND MESSAGE
-// await prisma.message.create({
-//   data: {
-//     conversationId: 'conv-id',
-//     senderId: 'u1',
-//     text: 'Hello',
-//     type: 'text'
+
+// import { auth } from '@my-better-t-app/auth'
+
+// async function seedUsers() {
+//   const users = [
+//     { email: "alice@example.com", password: "password123", name: "Alice" },
+//     { email: "bob@example.com", password: "password123", name: "Bob" },
+//     { email: "charlie@example.com", password: "password123", name: "Charlie" },
+//   ];
+
+//   for (const u of users) {
+//     // Create user with Better-Auth API (handles password hashing automatically)
+//     const result = await authClient.signUp.email({
+//       body: {
+//         email: u.email,
+//         password: u.password,
+//         name: u.name,
+//       }
+//     });
+    
+//     console.log(`✅ Created user: ${u.name} (${u.email})`);
 //   }
-// })
+// }
+
+// await seedUsers();
+
+
+
+
+
+// // const api = createRouterClient(appRouter, {
+// //   context: async () => ({
+// //     session: {
+// //       session: {
+// //         id: 'seed-session-id',
+// //         createdAt: new Date(),
+// //         updatedAt: new Date(),
+// //         userId: 'u1',
+// //         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
+// //         token: 'seed-token',
+// //       },
+// //       user: {
+// //         id: 'u1',
+// //         name: 'Alice',
+// //         email: 'alice@example.com',
+// //         emailVerified: true,
+// //         createdAt: new Date(),
+// //         updatedAt: new Date(),
+// //       }
+// //     }
+// //   })
+// // })
+
+
+// // Create user with Better-Auth API (handles password hashing automatically)
+// // await auth.api.signUpEmail({
+// //   body: {
+// //     email: 'alice@example.com',
+// //     password: 'password123',
+// //     name: 'Alice',
+// //   }
+// // })
+
+
+
+
+// // await user.create
+// // await api.conversation.create({ userIds: ['u2', 'u3'] })
+// // await api.message.send({ conversationId: 'c1', text: 'Hello' })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //! DIRECT prisma calls
+// // import prisma from '../src/index'
+
+// // // CREATE CONVERSATION
+// // await prisma.conversation.create({
+// //   data: {
+// //     participants: {
+// //       create: [
+// //         { userId: 'u1' },
+// //         { userId: 'u2' }
+// //       ]
+// //     }
+// //   }
+// // })
+
+// // // SEND MESSAGE
+// // await prisma.message.create({
+// //   data: {
+// //     conversationId: 'conv-id',
+// //     senderId: 'u1',
+// //     text: 'Hello',
+// //     type: 'text'
+// //   }
+// // })
 
 

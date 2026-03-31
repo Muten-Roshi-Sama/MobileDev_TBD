@@ -26,9 +26,7 @@
     "db:down": "docker compose down"
   },
   "dependencies": {
-    "@my-better-t-app/api": "workspace:*",
     "@my-better-t-app/env": "workspace:*",
-    "@my-better-t-app/auth": "workspace:*",
     "@orpc/server": "catalog:",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "catalog:",
