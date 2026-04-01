@@ -18,10 +18,10 @@ import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'luci
 import type { Prisma } from '../../../../packages/db/prisma/generated/client';
 import type { useClientPoint } from 'node_modules/@base-ui/react/esm/floating-ui-react';
 // Inherit Types
-// type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true, messages:true } }>
-// type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
-// type ConversationParticipant = Prisma.ConversationParticipantGetPayload<{ include:{ user: true, conversation: true } }>
-// type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
+type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true, messages:true } }>
+type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
+type ConversationParticipant = Prisma.ConversationParticipantGetPayload<{ include:{ user: true, conversation: true } }>
+type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
 // type Conversation = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer OA, any> ? OA extends  (infer O)[] ? O : never : never
 // type Message = typeof orpc.message.list extends ProcedureUtils<any, any, infer O, any> ? O extends { messages: any} ? O['messages'][number] : never : never
 // type User = typeof orpc.user.current extends ProcedureUtils<any, any, infer O, any> ? O : never
