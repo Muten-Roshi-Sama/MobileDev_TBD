@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 // Libs
@@ -18,10 +18,10 @@ import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'luci
 import type { Prisma } from '../../../../packages/db/prisma/generated/client';
 import type { useClientPoint } from 'node_modules/@base-ui/react/esm/floating-ui-react';
 // Inherit Types
-type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true, messages:true } }>
-type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
-type ConversationParticipant = Prisma.ConversationParticipantGetPayload<{ include:{ user: true, conversation: true } }>
-type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
+// type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true, messages:true } }>
+// type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
+// type ConversationParticipant = Prisma.ConversationParticipantGetPayload<{ include:{ user: true, conversation: true } }>
+// type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
 // type Conversation = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer OA, any> ? OA extends  (infer O)[] ? O : never : never
 // type Message = typeof orpc.message.list extends ProcedureUtils<any, any, infer O, any> ? O extends { messages: any} ? O['messages'][number] : never : never
 // type User = typeof orpc.user.current extends ProcedureUtils<any, any, infer O, any> ? O : never
@@ -49,6 +49,21 @@ export const Route = createFileRoute("/messaging")({
 //        ├── ChatHeader
 //        ├── MessagesArea
 //        └── ChatInput
+
+
+// -------- Helpers -----------
+export function formatTime(value: Date | string | number | null | undefined) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+
 
 
 function ChatLayout({
@@ -116,12 +131,25 @@ function ConversationListItem(
   ) {
   const { cid } = Route.useSearch();  // useParam ? No : cid is a query param, not a url/path param.
   const { markAsRead } = useConversations(orpc);
+  const { currentUserInfo, byIds, setIdsList } = useUser(orpc);
+
+  const currentUserId = currentUserInfo.user?.id;
+
+  useEffect(() => {
+    setIdsList(
+      selectedCv.participants
+        .map((participant) => participant.userId)
+        .filter((userId) => userId !== currentUserId)
+    );
+  }, [selectedCv.participants, currentUserId, setIdsList]);
 
   // Extract
-  const name = selectedCv.participants[0]?.userId ?? "Unknown"
+  const participants = byIds.users.filter((user) => user.id !== currentUserId);
+  const names = participants.map((user) => user.name ?? "Unknown").join(", ") || "Unknown;"
+
   const unreadCount = selectedCv.unreadCount;
   const lastText = selectedCv.lastMessage?.text ?? "";
-  const timestamp = selectedCv.lastMessage?.createdAt.toLocaleTimeString() ?? "";
+  const timestamp = formatTime(selectedCv.lastMessage?.createdAt);
   const online = true;  // TODO.
 
   return (
@@ -130,11 +158,11 @@ function ConversationListItem(
 
       // className={`w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors 
       className={`w-full flex items-center gap-3 px-4 py-3 border-b border-border transition-colors
-        ${cid 
+        ${cid == selectedCv.id
           ? 'bg-primary text-primary-foreground' 
           : 'bg-sidebar text-sidebar-foreground hover:bg-accent'
       }`}
-      aria-label={`Open conversation with ${name}`}
+      aria-label={`Open conversation with ${names}`}
     >
       {/* Avatar */}
       <div className="relative">
@@ -149,7 +177,7 @@ function ConversationListItem(
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between">
           {/* Name + Timestamp */}
-          <span className="font-semibold text-foreground">{name}</span>
+          <span className="font-semibold text-foreground">{names}</span>
           <span className="text-xs text-muted-foreground">{timestamp}</span>
         </div>
         <div className="flex items-center justify-between">
@@ -264,39 +292,41 @@ function ChatHeader() {
 
 function ChatArea() {
   const { cid } = Route.useSearch();
+  const { currentUserInfo } = useUser(orpc);
   const {listMessages} = useMessages(orpc, cid ?? '');
+
+  const currentUserId = currentUserInfo.user?.id;
   const messages = listMessages.messages;
 
-  return (
-      <div className="p-4 space-y-4">
-        {/* Messages Area */}
-          
-        {messages.map((msg) => (
+    return (
+    <div className="p-4 space-y-4">
+      {/* Messages Area */}
+      {messages.map((msg) => {
+        const isMine = msg.senderId === currentUserId;
+
+        return (
           <div
             key={msg.id}
-            className={`flex ${msg.senderId === cid ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${isMine ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                msg.senderId === cid
+                isMine
                   // ? 'bg-blue-500 text-bubble-me-foreground rounded-br-none'
                   // : 'bg-white text-gray-900 rounded-bl-none'
-                  ? 'bg-(--bubble-me) text-(--bubble-me-foreground) rounded-br-none'
-                  : 'bg-(--bubble-other) text-(--bubble-other-foreground) rounded-bl-none'
+                  ? "bg-(--bubble-me) text-(--bubble-me-foreground) rounded-br-none"
+                  : "bg-(--bubble-other) text-(--bubble-other-foreground) rounded-bl-none"
               }`}
             >
               <p className="break-words">{msg.text}</p>
-              <p
-                className={`text-xs mt-1 ${
-                  msg.senderId === cid ? 'text-bubble-me-foreground' : 'text-gray-500'
-                }`}
-              >
-                {msg.updatedAt.toString()}
+              <p className={`text-xs mt-1 ${isMine ? "text-bubble-me-foreground" : "text-gray-500"}`}>
+                {formatTime(msg.updatedAt)}
               </p>
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
   );
 }
 
