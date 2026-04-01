@@ -301,13 +301,7 @@ function ChatArea() {
 }
 
 
-function ChatInput(
-  // {}: {
-  // messageInput: string;
-  // setMessageInput: (value: string) => void;
-  // handleSendMessage: () => void;
-  // }
-) {
+function ChatInput() {
   const { cid } = Route.useSearch();
   const {send, setNewMessage, newMessage} = useMessages(orpc, cid ?? '');  // ? conversationId=cid
 
@@ -324,7 +318,7 @@ function ChatInput(
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              send;
+              send();
             }
           }}
           placeholder="Type a message..."
