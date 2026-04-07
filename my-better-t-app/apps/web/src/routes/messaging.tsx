@@ -22,6 +22,7 @@ type Conversation = Prisma.ConversationGetPayload<{ include:{ participants: true
 type Message = Prisma.MessageGetPayload<{ include:{ sender: true, conversation: true } }>
 type ConversationParticipant = Prisma.ConversationParticipantGetPayload<{ include:{ user: true, conversation: true } }>
 type User = Prisma.UserGetPayload<{ include:{ conversations: true, messagesSent: true, sessions: true, accounts: true  } }>
+
 // type Conversation = typeof orpc.conversation.listAll extends ProcedureUtils<any, any, infer OA, any> ? OA extends  (infer O)[] ? O : never : never
 // type Message = typeof orpc.message.list extends ProcedureUtils<any, any, infer O, any> ? O extends { messages: any} ? O['messages'][number] : never : never
 // type User = typeof orpc.user.current extends ProcedureUtils<any, any, infer O, any> ? O : never
@@ -88,10 +89,15 @@ function SideBar({ children }: { children: React.ReactNode }) {
   );
 }
 
-
-// function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
-function SearchBar() {
-  const {searchText, setSearchText} = useUser(orpc)
+function SearchBar({
+  searchText,
+  setSearchText
+}: {
+  searchText: string;
+  setSearchText: (value: string) => void;
+}
+) {
+  // const {searchText, setSearchText} = useUser(orpc)
   return (
     <div className="p-4 border-b">
       <input
@@ -104,24 +110,48 @@ function SearchBar() {
   );
 }
 
-// type ConversationListProps = {
-//   conversations: Conversation[];
-// };
+function ConversationList({
+  conversations,
+  search,
+  searchText,
+}: {
+  conversations: ReturnType<typeof useConversations>["conversations"];
+  search: ReturnType<typeof useUser>["search"];
+  searchText: string,
+}) {
+  // const { conversations } = useConversations(orpc)
 
-function ConversationList() {
-  const { conversations } = useConversations(orpc)
+  const query = searchText.trim().toLowerCase();
+
+  const visibleConversations =
+    query.length > 1
+      ? conversations.filter((conversation) =>
+          search.users.some((user) =>
+            conversation.participants.some((participant) => participant.userId === user.id),
+          ),
+        )
+      : conversations;
+
+
   return (
     <div className="flex-1 overflow-y-auto" role="list">
-      {conversations.map((cv) => (
-        <Link 
+      {visibleConversations.length > 0 ? (
+        visibleConversations.map((cv) => (
+          <Link
             key={cv.id}
-            to="." 
-            search={(prev) => ({ ...prev, cid: cv.id })} >
-            <ConversationListItem 
-            {...cv}         // pass through the ENTIRE conversation as object
+            to="."
+            search={(prev) => ({ ...prev, cid: cv.id })}
+          >
+            <ConversationListItem
+              {...cv} // pass through the ENTIRE conversation as object
             />
-        </Link>
-      ))}
+          </Link>
+        ))
+      ) : (
+        <div className="p-4 text-sm text-muted-foreground">
+          No conversations found.
+        </div>
+      )}
     </div>
   );
 }
@@ -373,70 +403,24 @@ function ChatInput() {
 
 // ======== MAIN APP COMPONENT ========
 export function LiveChatApp() {
-  // const [selectedConversation, setSelectedConversation] = useState<number>(1);
-  const { cid } = Route.useSearch();
-  const [messageInput, setMessageInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
 
   
-
-  // const messages: Record<number, Message[]> = {
-  //   1: [
-  //     { id: 1, text: 'Hey there!', sender: 'other', timestamp: '10:30 AM' },
-  //     { id: 2, text: 'Hi! How can I help you?', sender: 'me', timestamp: '10:31 AM' },
-  //     { id: 3, text: 'I wanted to ask about the project', sender: 'other', timestamp: '10:32 AM' },
-  //     { id: 4, text: 'Sure, what would you like to know?', sender: 'me', timestamp: '10:33 AM' },
-  //     { id: 5, text: 'When is the deadline?', sender: 'other', timestamp: '10:34 AM' },
-  //     { id: 6, text: 'The deadline is next Friday', sender: 'me', timestamp: '10:35 AM' },
-  //     { id: 7, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //     { id: 8, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //     { id: 9, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //     { id: 10, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //     { id: 11, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //     { id: 12, text: 'Hey! How are you doing?', sender: 'other', timestamp: '10:36 AM' },
-  //   ],
-  //   2: [
-  //     { id: 1, text: 'Thanks for the update!', sender: 'other', timestamp: '9:15 AM' },
-  //     { id: 2, text: 'No problem!', sender: 'me', timestamp: '9:16 AM' },
-  //   ],
-  //   3: [
-  //     { id: 1, text: 'See you tomorrow', sender: 'other', timestamp: 'Yesterday' },
-  //   ],
-  //   4: [
-  //     { id: 1, text: 'Can you send me the files?', sender: 'other', timestamp: 'Yesterday' },
-  //   ],
-  //   5: [
-  //     { id: 1, text: 'Perfect! Talk soon.', sender: 'other', timestamp: '2 days ago' },
-  //   ],
-  // };
-
-  // const currentConversation = conversations.find((c) => c.id === cid);
-  // const currentMessages = messages[cid] || [];
-
-  // const handleSendMessage = () => {
-  //   if (messageInput.trim()) {
-  //     // Handle sending message (mock functionality)
-  //     setMessageInput('');
-  //   }
-  // };
-
-  // const filteredConversations = conversations.filter((conv) =>
-  //   conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  // );
+  const { search, searchText, setSearchText } = useUser(orpc);
+  const { conversations } = useConversations(orpc);
 
   return (
       <ChatLayout>
         {/* LEFT */}
         <SideBar>
           <SearchBar
-            // searchQuery={searchQuery}
-            // onSearchChange={setSearchQuery}
+            searchText={searchText}   
+            setSearchText={setSearchText}   // Note : must share searchBar text between SearchBar and ConversationList
           />
           <ConversationList
-            // conversations={filteredConversations}
-            // selectedConversation={selectedConversation}
-            // onSelectConversation={() => {}}//{setSelectedConversation}
+            conversations={conversations}
+            search={search}
+            searchText={searchText}
           />
         </SideBar>
 
