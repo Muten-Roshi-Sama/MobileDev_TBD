@@ -79,7 +79,8 @@ src/routers/chat → API (oRPC routers)
 
 # 🗄️ Core Models (Prisma)
 Read files at /packages/db/prisma/schema for all schemas.
-## Conversation
+## Conversationok so now my app in web is pretty good : 
+
 ```ts
 id, createdAt, updatedAt
 participants[]

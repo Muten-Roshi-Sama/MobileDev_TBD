@@ -76,12 +76,35 @@ Install the package in the web and native folder :
 
 
 
+## DONE :
+- db models with prisma are done
+- routers are done
+- hooks too (useUser, useMessages, UseConversation)
+
+
+### web ui :
+- database seeding via UI (this only for web is enough)
+- connecting via multiple users and sending messages
+- searchbar conv search
+- lastread bubble and last message timestamp
+
+
+
+
+
+
 ## TODO :  
+- add dockerizing of the entire app
 - SOCKETS : make sent messages appear immediately to the recipient.
 - read bubbles etc make all optimistic updates 
 - Prisma script seeding
 - Create New conversation window
 - Create a welcome page with good referencing and respect preloader and prefetching for good SEO
+- do expo/native/mobile version of app
+- add a unique mobile feature of mobile to the app (gps, camera, ...)
+
+
+
 
 
 ### UI :
