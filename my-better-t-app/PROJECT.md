@@ -73,3 +73,22 @@ Make sure to be in the correct `/db` folder :
 Install the package in the web and native folder : 
 > pnpm add '@my-better-t-app/hooks@workspace:'
 > pnpm install
+
+
+
+## TODO :  
+- SOCKETS : make sent messages appear immediately to the recipient.
+- read bubbles etc make all optimistic updates 
+- Prisma script seeding
+- Create New conversation window
+- Create a welcome page with good referencing and respect preloader and prefetching for good SEO
+
+
+### UI :
+- Emojis
+- User Avatar/Image
+- User Settings
+- Share files (pdf, images, videos,... )
+
+
+

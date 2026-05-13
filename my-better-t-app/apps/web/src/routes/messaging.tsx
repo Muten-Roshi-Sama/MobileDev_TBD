@@ -35,11 +35,6 @@ export const Route = createFileRoute("/messaging")({
   })
 });
 
-// TODO : ================================== 
-//      - SOCKETS : 
-//      - Prisma script seeding
-
-
 
 // ChatLayout
 //  ├── Sidebar
