@@ -19,6 +19,7 @@
     "@gorhom/bottom-sheet": "^5",
     "@my-better-t-app/api": "workspace:*",
     "@my-better-t-app/env": "workspace:*",
+    "@my-better-t-app/hooks": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/tanstack-query": "catalog:",
     "@react-navigation/drawer": "^7.3.9",
