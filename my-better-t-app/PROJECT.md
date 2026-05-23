@@ -50,20 +50,27 @@ Participants HAS Users
 
 
 
+
+
+
 ## Setup :
 
-### Start db :
->> pnpm run db:start
->> pnpm run db:push
->> pnpm run db:generate
 
-### Prisma DB push reset :
-Make sure to be in the correct `/db` folder :
->> npx prisma db push --force-reset
+### Startup
+```bash
+# 1. Start db with docker and web/native with pnpm
+docker compose up -d postgres
+pnpm run dev
 
-### Launch app :
->> pnpm run dev
+# 2. Start all with docker (not working for native yet)
+docker compose up -d #at root folder
+```
 
+
+
+### DB :
+Refresh the db to its initial state :
+>> pnpm run db:fresh
 
 
 ### Restart TS server dependencies :
@@ -75,12 +82,39 @@ Install the package in the web and native folder :
 > pnpm install
 
 
+## Web
+
+
+## Mobile
+
+
+### Native structure
+
+```bash
+apps/native/
+├── app/                    # Expo Router routes/screens
+├── assets/                 # images/icons/splash assets
+├── components/             # reusable UI components
+├── contexts/               # React contexts like theme
+├── lib/                    # auth/client helpers
+├── utils/                  # ORPC client, query client, helpers
+├── global.css              # shared styling entry
+├── metro.config.js         # Metro + Uniwind config
+├── app.json                # Expo app config
+├── package.json            # native dependencies/scripts
+├── tsconfig.json           # TS config + path aliases
+├── polyfills.js            # web/runtime polyfills
+└── expo-env.d.ts           # Expo types
+```
+
+
+
+
 
 ## DONE :
 - db models with prisma are done
 - routers are done
 - hooks too (useUser, useMessages, UseConversation)
-
 
 ### web ui :
 - database seeding via UI (this only for web is enough)
@@ -89,21 +123,21 @@ Install the package in the web and native folder :
 - lastread bubble and last message timestamp
 
 
+### Mobile :
 
-
-
+--- 
 
 ## TODO :  
-- add dockerizing of the entire app
-- SOCKETS : make sent messages appear immediately to the recipient.
-- read bubbles etc make all optimistic updates 
-- Prisma script seeding
-- Create New conversation window
-- Create a welcome page with good referencing and respect preloader and prefetching for good SEO
-- do expo/native/mobile version of app
-- add a unique mobile feature of mobile to the app (gps, camera, ...)
++ add dockerizing of the entire app
++ SOCKETS : make sent messages appear immediately to the recipient.
++ read bubbles etc make all optimistic updates (3 vs)
+
++ Native app
++ add a unique mobile feature of mobile to the app (gps, camera, ...)
 
 
++ Create a welcome page with good referencing and respect preloader and prefetching for good SEO
++ Create New conversation window
 
 
 

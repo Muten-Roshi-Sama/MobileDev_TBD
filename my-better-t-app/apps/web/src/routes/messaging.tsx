@@ -61,7 +61,7 @@ export function formatTime(value: Date | string | number | null | undefined) {
 
 
 
-
+// -------- App Layout ---------
 function ChatLayout({
     children: [sidebar, chatWindow],
     }: {
@@ -398,9 +398,6 @@ function ChatInput() {
 
 // ======== MAIN APP COMPONENT ========
 export function LiveChatApp() {
-
-
-  
   const { search, searchText, setSearchText } = useUser(orpc);
   const { conversations } = useConversations(orpc);
 
