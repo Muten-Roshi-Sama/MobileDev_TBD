@@ -9,7 +9,7 @@ import { $Enums } from "../../../db/prisma/generated/client";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 
 
-import { streamRouter } from "./sse"; // Sockets
+// import { streamRouter } from "./sse"; // Sockets
 
 // Main API router: register all your routers here (messageRouter, etc).
 // This is the entrypoint for the app's API endpoints.
@@ -29,7 +29,7 @@ export const appRouter = {
   user: userRouter,
   message: messageRouter,
   conversation: conversationRouter,
-  stream: streamRouter
+  // stream: streamRouter
 
 };
 

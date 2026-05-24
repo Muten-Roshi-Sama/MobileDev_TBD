@@ -4,6 +4,10 @@ import { ORPCError } from "@orpc/server"; // install : pnpm --filter @my-better-
 
 import { protectedProcedure } from "../../index";
 
+// WebSocket
+import { broadcastConversationEvent } from "../websocket/websocket";
+
+
 
 // Important :
 //      - DONE IN protectedProcedure : Check if user is authenticated in every procedure, 
@@ -52,6 +56,15 @@ export const messageRouter = {
                     data: { updatedAt: new Date() },
                 }),
             ]);
+
+            // 3. Websocket Event sending
+            try {
+                broadcastConversationEvent(input.conversationId, {
+                    type: "MESSAGE_SENT",
+                    conversationId: input.conversationId,
+                    message,
+                });
+            } catch (err) { console.error("ws broadcast error:", err); }
 
             return message;
         }),
