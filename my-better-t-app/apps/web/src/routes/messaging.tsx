@@ -11,6 +11,8 @@ import Header from '@/components/header';
 // UI
 import { Send, MoreVertical, Search, Phone, Video, Paperclip, Smile } from 'lucide-react';
 
+// Websockets
+import { useConversationStream } from "@my-better-t-app/hooks/websocket/useConversationStream";
 
 
 
@@ -319,9 +321,13 @@ function ChatArea() {
   const { cid } = Route.useSearch();
   const { currentUserInfo } = useUser(orpc);
   const {listMessages} = useMessages(orpc, cid ?? '');
+  
 
   const currentUserId = currentUserInfo.user?.id;
   const messages = listMessages.messages;
+
+  // Websocket
+  useConversationStream(orpc, cid ?? null);
 
     return (
     <div className="p-4 space-y-4">

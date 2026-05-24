@@ -5,15 +5,14 @@ import type { set } from "zod";
 import type { get } from "http";
 
 
-// import type { AppOrpcUtils } from "@my-better-t-app/api/routers/index";
-
-import { type orpc } from "../../apps/web/src/utils/orpc";
-type ORPC = typeof orpc
+import type { AppOrpcUtils } from "@my-better-t-app/api/routers/index";
+// import { type orpc } from "../../apps/web/src/utils/orpc";
+// type ORPC = typeof orpc
 
 // =========
 // USER 
 // =========
-export function useUser(orpc: ORPC) {
+export function useUser(orpc: AppOrpcUtils) {
     
     // DESCRIPTION :
     //      - GET current user data
@@ -79,7 +78,7 @@ export function useUser(orpc: ORPC) {
 // =========
 // Message
 // =========
-export function useMessages(orpc: ORPC, conversationId: string | null) {
+export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
 
 
     // DESCRIPTION :
@@ -174,7 +173,7 @@ export function useMessages(orpc: ORPC, conversationId: string | null) {
 // =========
 // Conversation
 // =========
-export function useConversations(orpc: ORPC, conversationId?: string) {
+export function useConversations(orpc: AppOrpcUtils, conversationId?: string) {
 
     // DESCRIPTION :
     //      - GET all conversation where current user is a participant.

@@ -4,11 +4,6 @@ import { wsManager } from "./wsStream";
 import { useQueryClient } from "@tanstack/react-query";
 
 
-// import type { orpc as ORPCType } from "../../../apps/web/src/utils/orpc";
-import { type orpc } from "../../../apps/web/src/utils/orpc";
-type ORPC = typeof orpc
-
-
 import type { AppOrpcUtils } from "@my-better-t-app/api/routers/index";
 
 
@@ -27,8 +22,9 @@ export function useConversationStream(orpc: AppOrpcUtils, conversationId?: strin
 
     const unsub = wsManager.subscribe(conversationId, (event: any) => {
       if (event.type === "MESSAGE_SENT") {
+        
         // SIMPLE: invalidate query so it refetches from server (MVP)
-        qc.invalidateQueries(orpc.message.list.queryKey({ input: { conversationId } }));
+        qc.invalidateQueries({queryKey: orpc.message.list.queryKey({ input: { conversationId } }),});
 
         // ALTERNATIVE (append delta) - uncomment to use:
         // const key = orpc.message.list.queryKey({ input: { conversationId } });

@@ -9,7 +9,9 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "ws:dev": "tsx src/routers/websocket/dev_start_server.ts"
+  },
   "dependencies": {
     "@my-better-t-app/auth": "workspace:*",
     "@my-better-t-app/db": "workspace:*",
@@ -28,6 +30,7 @@
   "devDependencies": {
     "@my-better-t-app/config": "workspace:*",
     "@types/ws": "^8.18.1",
+    "tsx": "^4.22.3",
     "typescript": "catalog:"
   }
 }
