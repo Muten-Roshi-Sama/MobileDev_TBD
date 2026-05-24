@@ -20,12 +20,14 @@
     "@orpc/tanstack-query": "catalog:",
     "@orpc/zod": "catalog:",
     "@prisma/client": "catalog:",
-    "@trpc/server": "^11.11.0",
+    "@trpc/server": "^11.17.0",
     "dotenv": "catalog:",
+    "ws": "^8.21.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@my-better-t-app/config": "workspace:*",
+    "@types/ws": "^8.18.1",
     "typescript": "catalog:"
   }
 }

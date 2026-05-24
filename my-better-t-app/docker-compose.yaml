@@ -1,47 +1,47 @@
-# services:
+services:
 
-#   web:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     container_name: my-better-t-app-web
-#     working_dir: /usr/src/app
-#     depends_on:
-#       postgres:
-#         condition: service_healthy
-#     environment:
-#       DATABASE_URL: postgresql://postgres:password@postgres:5432/my-better-t-app
-#       BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET}"
-#       BETTER_AUTH_URL: http://localhost:3001
-#       CORS_ORIGIN: http://localhost:3001
-#       NODE_ENV: development
-#     ports:
-#       - "3001:3001"
-#     volumes:
-#       - .:/usr/src/app
-#       - /usr/src/app/node_modules
-#     command: pnpm --filter web dev -- --host 0.0.0.0
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my-better-t-app-web
+    working_dir: /usr/src/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/my-better-t-app
+      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET}"
+      BETTER_AUTH_URL: http://localhost:3001
+      CORS_ORIGIN: http://localhost:3001
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: pnpm --filter web dev -- --host 0.0.0.0
 
-#   postgres:
-#     image: postgres:16-alpine
-#     container_name: my-better-t-app-postgres
-#     environment:
-#       POSTGRES_DB: my-better-t-app
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: password
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - my-better-t-app_postgres_data:/var/lib/postgresql/data
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U postgres -d my-better-t-app"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-#     restart: unless-stopped
+  postgres:
+    image: postgres:16-alpine
+    container_name: my-better-t-app-postgres
+    environment:
+      POSTGRES_DB: my-better-t-app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - my-better-t-app_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d my-better-t-app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
-# volumes:
-#   my-better-t-app_postgres_data:
+volumes:
+  my-better-t-app_postgres_data:
 
 
 
