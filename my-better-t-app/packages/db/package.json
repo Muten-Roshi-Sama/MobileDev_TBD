@@ -39,7 +39,7 @@
   "devDependencies": {
     "@my-better-t-app/config": "workspace:*",
     "@types/pg": "^8.16.0",
-    "prisma": "^7.2.0",
+    "prisma": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
   }

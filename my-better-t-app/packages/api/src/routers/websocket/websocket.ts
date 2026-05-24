@@ -129,6 +129,6 @@ export function createWebSocketServer(port = PORT) {
 }
 
 // If run directly, start server (dev convenience)
-if (require.main === module) {
-  createWebSocketServer();
-}
+// if (require.main === module) {
+//   createWebSocketServer();
+// }

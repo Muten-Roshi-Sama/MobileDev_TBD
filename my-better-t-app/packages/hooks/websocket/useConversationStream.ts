@@ -2,14 +2,24 @@
 import { useEffect } from "react";
 import { wsManager } from "./wsStream";
 import { useQueryClient } from "@tanstack/react-query";
-import type { orpc as ORPCType } from "../../../apps/web/src/utils/orpc";
+
+
+// import type { orpc as ORPCType } from "../../../apps/web/src/utils/orpc";
+import { type orpc } from "../../../apps/web/src/utils/orpc";
+type ORPC = typeof orpc
+
+
+import type { AppOrpcUtils } from "@my-better-t-app/api/routers/index";
+
+
+
 
 /**
  * Simple hook: subscribes to server events for a conversationId.
  * Default behavior: invalidate the message list query so React Query refetches.
  * If you prefer appending the event to cache, you can swap invalidate -> setQueryData.
  */
-export function useConversationStream(orpc: typeof ORPCType, conversationId?: string | null) {
+export function useConversationStream(orpc: AppOrpcUtils, conversationId?: string | null) {
   const qc = useQueryClient();
 
   useEffect(() => {
