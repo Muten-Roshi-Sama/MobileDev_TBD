@@ -7,7 +7,7 @@ import { protectedProcedure } from "../../index";
 // WebSocket
 import { broadcastConversationEvent } from "../websocket/websocket";
 
-
+const debugPrint = true;
 
 // Important :
 //      - DONE IN protectedProcedure : Check if user is authenticated in every procedure, 
@@ -29,6 +29,8 @@ export const messageRouter = {
         .input(z.object({ conversationId: z.string(), text: z.string().min(1) }))
         .handler(async ({ input, context }) => {
             const senderId = context.session?.user.id;
+            if (debugPrint) console.log("[ws:server] message.send()", { conversationId: input.conversationId, senderId, text: input.text });
+            
             // if (!senderId) {throw new Error("Not authenticated");}
 
             // 1. check if user is participant of conversation
@@ -59,11 +61,13 @@ export const messageRouter = {
 
             // 3. Websocket Event sending
             try {
+                if (debugPrint) console.log("[ws:server] broadcasting MESSAGE_SENT", { conversationId: input.conversationId });
                 broadcastConversationEvent(input.conversationId, {
                     type: "MESSAGE_SENT",
                     conversationId: input.conversationId,
                     message,
                 });
+                if (debugPrint) console.log("[ws:server] broadcast done");
             } catch (err) { console.error("ws broadcast error:", err); }
 
             return message;

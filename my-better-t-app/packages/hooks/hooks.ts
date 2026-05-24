@@ -155,6 +155,7 @@ export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
         
         send() {
             addMessage.mutate({ conversationId: conversationId ?? '', text: newMessage });  // params to pass to orpc send API
+            console.log("[ws:client] send()", { conversationId, newMessage });
             setNewMessage('')  // clear curr input
         },
         //

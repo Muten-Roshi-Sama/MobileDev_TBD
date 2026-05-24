@@ -7,6 +7,9 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { ensureWebSocketServer } from "@my-better-t-app/api/routers/websocket/websocket";
+ensureWebSocketServer();
+
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
     onError((error) => {
