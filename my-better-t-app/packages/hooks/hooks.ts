@@ -13,7 +13,6 @@ import type { AppOrpcUtils } from "@my-better-t-app/api/routers/index";
 // USER 
 // =========
 export function useUser(orpc: AppOrpcUtils) {
-    
     // DESCRIPTION :
     //      - GET current user data
     //      - SEARCH users by name/email
@@ -79,8 +78,6 @@ export function useUser(orpc: AppOrpcUtils) {
 // Message
 // =========
 export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
-
-
     // DESCRIPTION :
     //      - GET messages from a conversation ID.
     //      - LOAD next messages batch when scrolling (cursor).
@@ -175,7 +172,6 @@ export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
 // Conversation
 // =========
 export function useConversations(orpc: AppOrpcUtils, conversationId?: string) {
-
     // DESCRIPTION :
     //      - GET all conversation where current user is a participant.
     //      - CREATE conversation with current user and other users.
@@ -216,26 +212,26 @@ export function useConversations(orpc: AppOrpcUtils, conversationId?: string) {
     const createConversation = useMutation(orpc.conversation.create.mutationOptions({
         onMutate: async ({ userIds }) => {
             // Optimistically add a new conversation to the list with a temporary ID
-        queryClient.setQueryData(
-            orpc.conversation.listAll.queryKey(),
-            (oldData) => [
-            ...(oldData ?? []),
-            {
-                id: "temp-id",
-                participants: userIds.map((userId) => ({  // participants expect these fields
-                    userId,
-                    conversationId: "temp-id",
-                    lastReadAt: null,
-                    joinedAt: new Date(),
-                })),
-                messages: [], // empty array is OK
-                lastMessage: null,
-                unreadCount: 0,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            },
-            ]
-        );
+            queryClient.setQueryData(
+                orpc.conversation.listAll.queryKey(),
+                (oldData) => [
+                ...(oldData ?? []),
+                {
+                    id: "temp-id",
+                    participants: userIds.map((userId) => ({  // participants expect these fields
+                        userId,
+                        conversationId: "temp-id",
+                        lastReadAt: null,
+                        joinedAt: new Date(),
+                    })),
+                    messages: [], // empty array is OK
+                    lastMessage: null,
+                    unreadCount: 0,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                },
+                ]
+            );
         },
         // Cache invalidation AUTO DONE...
     })

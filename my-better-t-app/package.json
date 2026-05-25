@@ -22,6 +22,7 @@
     "db:down": "turbo -F @my-better-t-app/db db:down",
     "db:reset": "turbo -F @my-better-t-app/db db:reset",
     "db:fresh": "pnpm db:reset && pnpm db:push && pnpm db:generate"
+    
   },
   "dependencies": {
     "@my-better-t-app/env": "workspace:*",

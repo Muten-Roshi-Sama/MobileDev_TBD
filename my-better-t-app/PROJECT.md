@@ -8,10 +8,9 @@ Build a full-stack, centralized messaging app with authentication and client-ser
 
 ### Features & Requirements :
 - Monorepo
-- MVP prioritized, basic UI at first
 - Centralized server at first, open to decentralization later
 - Hashed password storage.
-- End-to-end encryption (last priority)
+- End-to-end encryption
 
 
 
@@ -56,20 +55,20 @@ Participants HAS Users
 ## Setup :
 
 
-### Startup
+### Launch the apps
+Launch Web, Native and Websocket server (attached to web) :
 ```bash
-# 1. Start db with docker and web/native with pnpm
+# Option 1. Start db with docker and web/native with pnpm
 docker compose up -d postgres
 pnpm run dev
 
-# 2. Start all with docker (not working for native yet)
+# Option 2. Start all with docker (not working for native yet)
 docker compose up -d #at root folder
 ```
 
 
-
 ### DB :
-Refresh the db to its initial state :
+Reset the db and re-generate prisma schemas :
 >> pnpm run db:fresh
 
 
@@ -86,10 +85,7 @@ Install the package in the web and native folder :
 
 
 ## Mobile
-
-
 ### Native structure
-
 ```bash
 apps/native/
 ├── app/                    # Expo Router routes/screens
@@ -106,7 +102,6 @@ apps/native/
 ├── polyfills.js            # web/runtime polyfills
 └── expo-env.d.ts           # Expo types
 ```
-
 
 
 
