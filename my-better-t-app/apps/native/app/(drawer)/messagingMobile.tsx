@@ -179,12 +179,12 @@ function ConversationListItem({
           <Text className="font-semibold text-foreground" numberOfLines={1}>
             {names}
           </Text>
-          <Text className="text-xs text-muted-foreground">{timestamp}</Text>
+          <Text className="text-xs text-gray-500 dark:text-gray-400">{timestamp}</Text>
         </View>
 
         <View className="flex-row items-center justify-between mt-1">
           {/* Last Message */}
-          <Text className="text-sm text-muted-foreground flex-1" numberOfLines={1}>
+          <Text className="text-sm text-gray-500 dark:text-gray-400 flex-1" numberOfLines={1}>
             {lastText}
           </Text>
 
