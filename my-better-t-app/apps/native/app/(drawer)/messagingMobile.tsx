@@ -236,11 +236,50 @@ function ChatHeader() {
   );
 }
 
-function ChatArea() {
-  // TODO: Add message list logic here
+function ChatArea({ cid }: { cid:string | null}) {
+  const { currentUserInfo } = useUser(orpc);
+  const {listMessages} = useMessages(orpc, cid ?? '');
+  const currentUserId = currentUserInfo.user?.id;
+  const messages = listMessages.messages;
+
+  // WS
+  // useConversationStream(orpc, cid ?? null);
+
   return (
     <ScrollView className="flex-1 px-4 py-4">
-      <Text className="text-muted-foreground">Messages will appear here</Text>
+      {messages.length > 0 ? (
+        messages.map((msg) => {
+          const isMine = msg.senderId === currentUserId;
+
+          return (
+            <View
+              key={msg.id}
+              className={`flex mb-3 ${isMine ? "items-end" : "items-start"}`}
+            >
+              <View
+                className={`max-w-xs px-4 py-2 rounded-2xl ${
+                  isMine
+                    ? "bg-blue-500 text-blue-50 rounded-br-none"
+                    : "bg-gray-200 text-gray-900 rounded-bl-none dark:bg-gray-700 dark:text-gray-100"
+                }`}
+              >
+                <Text className={isMine ? "text-blue-50" : "text-gray-900 dark:text-gray-100"}>
+                  {msg.text}
+                </Text>
+                <Text
+                  className={`text-xs mt-1 ${
+                    isMine ? "text-blue-100" : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  {formatTime(msg.updatedAt)}
+                </Text>
+              </View>
+            </View>
+          );
+        })
+      ) : (
+        <Text className="text-muted-foreground">No messages yet. Start the conversation!</Text>
+      )}
     </ScrollView>
   );
 }
@@ -307,7 +346,7 @@ export default function MessagingMobile() {
           {/* RIGHT */}
           <ChatWindow>
             <ChatHeader />
-            <ChatArea />
+            <ChatArea cid={selectedConversationId} />
             <ChatInput />
           </ChatWindow>
 
