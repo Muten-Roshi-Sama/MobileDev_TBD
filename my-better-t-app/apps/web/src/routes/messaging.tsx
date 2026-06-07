@@ -180,7 +180,7 @@ function ConversationListItem(
   const unreadCount = selectedCv.unreadCount;
   const lastText = selectedCv.lastMessage?.text ?? "";
   const timestamp = formatTime(selectedCv.lastMessage?.createdAt);
-  const online = true;  // TODO.
+  const online = true;  // TODO : use websocket
 
   return (
     <button
@@ -405,7 +405,7 @@ function ChatInput() {
   );
 }
 
-// ======== MAIN APP COMPONENT ========
+// ======== MAIN WEB APP COMPONENT ========
 export function LiveChatApp() {
   const { search, searchText, setSearchText } = useUser(orpc);
   const { conversations } = useConversations(orpc);

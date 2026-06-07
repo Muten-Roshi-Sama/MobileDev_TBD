@@ -10,6 +10,8 @@ import { Container } from "@/components/container";
 import { orpc } from "@/utils/orpc";
 import React, { useState, useEffect } from "react";
 import { useUser, useMessages, useConversations } from "@my-better-t-app/hooks";
+import { useLocalSearchParams, useRouter } from "expo-router";
+
 
 // Websockets
 import { useConversationStream } from "@my-better-t-app/hooks/websocket/useConversationStream";
@@ -75,14 +77,14 @@ function ConversationList({
   conversations,
   search,
   searchText,
-  selectedConversationId,
-  onSelectConversation,
+  // selectedConversationId,
+  // onSelectConversation,
   }: {
   conversations: ConversationItem[];
   search: ReturnType<typeof useUser>["search"];
   searchText: string;
-  selectedConversationId: string | null;
-  onSelectConversation: (conversationId: string) => void;
+  // selectedConversationId: string | null;
+  // onSelectConversation: (conversationId: string) => void;
   }) {
   const query = searchText.trim().toLowerCase();
 
@@ -102,8 +104,8 @@ function ConversationList({
           <ConversationListItem
             key={conversation.id}
             conversation={conversation}
-            selected={selectedConversationId === conversation.id}
-            onPress={() => onSelectConversation(conversation.id)}
+            // selected={selectedConversationId === conversation.id}
+            // onPress={() => onSelectConversation(conversation.id)}
           />
         ))
       ) : (
@@ -117,31 +119,63 @@ function ConversationList({
 
 function ConversationListItem({
   conversation,
-  selected,
-  onPress,
   }: {
   conversation: ConversationItem;
-  selected: boolean;
-  onPress: () => void;
   }) {
-  // TODO: Add user name logic here later
-  const names = "User Name"; // Placeholder
+
+  // 1. get cid from url
+  const router = useRouter();
+  const { cid } = useLocalSearchParams<{ cid?: string }>();
+  const selected = cid === conversation.id;
+
+
+  // 2. get conversation info
+  const { currentUserInfo, byIds, setIdsList } = useUser(orpc);
+  const { markAsRead } = useConversations(orpc);
+  const currentUserId = currentUserInfo.user?.id;
+
+  // 3. Build list of participant IDs (excluding current user)
+  useEffect(() => {
+    setIdsList(
+      conversation.participants
+        .map((participant) => participant.userId)
+        .filter((userId) => userId !== currentUserId)
+    );
+  }, [conversation.participants, currentUserId, setIdsList]);
+
+  // 4. Extract conv info
+  const participants = byIds.users.filter((user) => user.id !== currentUserId);
+  const names = participants.map((user) => user.name ?? "Unknown").join(", ") || "Unknown";
+
+  const unreadCount = conversation.unreadCount;
   const lastText = conversation.lastMessage?.text ?? "No messages";
   const timestamp = formatTime(conversation.lastMessage?.createdAt);
+  const online = true;  // TODO : use websocket
 
   return (
     <Pressable
-      onPress={onPress}
-      className={`flex-row items-center gap-3 px-4 py-3 border-b border-border ${
+      onPress={() => {
+        markAsRead(conversation.id);
+        router.setParams({ cid: conversation.id });
+      }}
+      className={`flex-row items-center gap-3 px-4 py-3 border-b border-border transition-colors ${
         selected ? "bg-primary/10" : "bg-transparent"
       }`}
     >
-      <View className="w-10 h-10 rounded-full bg-primary items-center justify-center">
-        <Text className="text-primary-foreground font-semibold">{names[0]}</Text>
+      {/* Avatar with online indicator */}
+      <View className="relative">
+        <View className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 items-center justify-center">
+          <Text className="text-lg font-semibold text-primary-foreground">{names[0]}</Text>
+        </View>
+        {online && (
+          <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+        )}
       </View>
 
+      {/* Text section */}
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center justify-between">
+          {/* Name + Timestamp */}
           <Text className="font-semibold text-foreground" numberOfLines={1}>
             {names}
           </Text>
@@ -149,15 +183,17 @@ function ConversationListItem({
         </View>
 
         <View className="flex-row items-center justify-between mt-1">
+          {/* Last Message */}
           <Text className="text-sm text-muted-foreground flex-1" numberOfLines={1}>
             {lastText}
           </Text>
 
-          {conversation.unreadCount > 0 ? (
+          {/* Unread Bubble */}
+          {unreadCount > 0 && (
             <View className="ml-2 bg-green-500 px-2 py-1 rounded-full">
-              <Text className="text-xs text-white font-semibold">{conversation.unreadCount}</Text>
+              <Text className="text-xs text-white font-semibold">{unreadCount}</Text>
             </View>
-          ) : null}
+          )}
         </View>
       </View>
     </Pressable>
@@ -236,7 +272,18 @@ function ChatInput() {
 export default function MessagingMobile() {
   const { searchText, setSearchText, search } = useUser(orpc);
   const { conversations } = useConversations(orpc);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  // const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  // cid
+  const router = useRouter();
+  const { cid } = useLocalSearchParams<{ cid?: string }>();
+  const selectedConversationId = cid ?? null;
+  useEffect(() => {
+    if (!selectedConversationId && conversations.length > 0) {
+      router.setParams({ cid: conversations[0].id });
+    }
+  }, [selectedConversationId, conversations, router]);
+
 
   return (
     <Container className="bg-background">
@@ -252,8 +299,8 @@ export default function MessagingMobile() {
               conversations={conversations}
               search={search} // TODO: Add search logic
               searchText={searchText}
-              selectedConversationId={selectedConversationId}
-              onSelectConversation={setSelectedConversationId}
+              // selectedConversationId={selectedConversationId}
+              // onSelectConversation={setSelectedConversationId}
             />
           </SideBar>
 
@@ -263,7 +310,10 @@ export default function MessagingMobile() {
             <ChatArea />
             <ChatInput />
           </ChatWindow>
+
+          
         </ChatLayout>
+
       </KeyboardAvoidingView>
     </Container>
   );
