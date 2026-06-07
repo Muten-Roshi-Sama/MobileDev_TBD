@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagingRouteImport } from './routes/messaging'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DevToolsRouteImport } from './routes/devTools'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,6 +27,11 @@ const MessagingRoute = MessagingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevToolsRoute = DevToolsRouteImport.update({
+  id: '/devTools',
+  path: '/devTools',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
+  '/devTools': typeof DevToolsRoute
   '/login': typeof LoginRoute
   '/messaging': typeof MessagingRoute
   '/api/ai/$': typeof ApiAiSplatRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
+  '/devTools': typeof DevToolsRoute
   '/login': typeof LoginRoute
   '/messaging': typeof MessagingRoute
   '/api/ai/$': typeof ApiAiSplatRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
+  '/devTools': typeof DevToolsRoute
   '/login': typeof LoginRoute
   '/messaging': typeof MessagingRoute
   '/api/ai/$': typeof ApiAiSplatRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/dashboard'
+    | '/devTools'
     | '/login'
     | '/messaging'
     | '/api/ai/$'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/dashboard'
+    | '/devTools'
     | '/login'
     | '/messaging'
     | '/api/ai/$'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/dashboard'
+    | '/devTools'
     | '/login'
     | '/messaging'
     | '/api/ai/$'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   DashboardRoute: typeof DashboardRoute
+  DevToolsRoute: typeof DevToolsRoute
   LoginRoute: typeof LoginRoute
   MessagingRoute: typeof MessagingRoute
   ApiAiSplatRoute: typeof ApiAiSplatRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devTools': {
+      id: '/devTools'
+      path: '/devTools'
+      fullPath: '/devTools'
+      preLoaderRoute: typeof DevToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   DashboardRoute: DashboardRoute,
+  DevToolsRoute: DevToolsRoute,
   LoginRoute: LoginRoute,
   MessagingRoute: MessagingRoute,
   ApiAiSplatRoute: ApiAiSplatRoute,

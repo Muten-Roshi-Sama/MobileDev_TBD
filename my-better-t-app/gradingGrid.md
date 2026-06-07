@@ -42,7 +42,7 @@
 - Crucial pages can be rendered on the server* :  todo SSR on welcome page
 - Crucial data present on first render : //
 - Less crucial data is deferred : app mostly defers chat and user data to client fetches, which is acceptable for a messaging app.
-- Waterfalls are avoided : todo add some preloading ?
+- Waterfalls are avoided : todo add some preloading ? (dashboard preloads session before UI appears)
 
 
 

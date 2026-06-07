@@ -1,3 +1,4 @@
+// chat.prisma
 // Important : uses auth.prisma for User model !
 
 

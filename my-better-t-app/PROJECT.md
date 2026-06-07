@@ -83,6 +83,17 @@ Install the package in the web and native folder :
 
 ## Web
 
+Mains dispaly flow :
+1. `/web/src/routes/__root.tsx` renders the main document.
+    - Header.
+    - Body.
+
+
+3. Dashboard : redirects to /login if no user session exists.
+
+
+
+
 
 ## Mobile
 ### Native structure
@@ -110,6 +121,7 @@ apps/native/
 - db models with prisma are done
 - routers are done
 - hooks too (useUser, useMessages, UseConversation)
++ SOCKETS : make sent messages appear immediately to the recipient.
 
 ### web ui :
 - database seeding via UI (this only for web is enough)
@@ -124,9 +136,7 @@ apps/native/
 
 ## TODO :  
 + add dockerizing of the entire app
-+ SOCKETS : make sent messages appear immediately to the recipient.
 + read bubbles etc make all optimistic updates (3 vs)
-
 + Native app
 + add a unique mobile feature of mobile to the app (gps, camera, ...)
 

@@ -1,4 +1,4 @@
-
+// auth.prisma
 
 // User :
 //  - one user -> many sessions (multiple devices logged in)

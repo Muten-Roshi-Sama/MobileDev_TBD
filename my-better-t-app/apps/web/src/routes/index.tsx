@@ -86,14 +86,6 @@ function HomeComponent() {
   const healthCheck = useQuery(orpc.healthCheck.queryOptions());
 
   // DEV
-  
-
-
-
-
-
-
-
   // ----------------------------
   return (
     <div className="container mx-auto max-w-3xl px-4 py-2">
@@ -117,8 +109,8 @@ function HomeComponent() {
           
         </section>
 
-        <SeedLayout>
-        </SeedLayout>
+        {/* <SeedLayout>
+        </SeedLayout> */}
 
       </div>
     </div>
