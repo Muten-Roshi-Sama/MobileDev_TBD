@@ -1,21 +1,38 @@
 // packages/hooks/websocket/wsStream.ts
 import type { ConversationEvent } from "../../api/src/routers/websocket/websocket";
 
-const WS_URL =
-  typeof import.meta !== "undefined" && (import.meta as any)?.env?.VITE_WS_URL
-    ? (import.meta as any).env.VITE_WS_URL
-    : "ws://localhost:4001";
-
-
-// DEBUG PRINTS
-const debugPrint =
-  typeof import.meta !== "undefined" &&
-  (import.meta as any)?.env?.VITE_WS_DEBUG !== "false";
+const WS_URL = getEnvVar("VITE_WS_URL") ?? "ws://localhost:4001";
+const debugPrint = getEnvVar("VITE_WS_DEBUG") !== "false";
 
 const log = (...args: unknown[]) => { if (debugPrint) console.log("[ws:client - wsStream.ts]", ...args); };
 
+// ---------- Helpers ------------
+function getEnvVar(key: string) {
+  // Safe environment detection that avoids `import.meta` (not supported by Metro/RN).
+  // Prefer Vite's `VITE_WS_URL` when available via `process.env`, otherwise fallback.
+  try {
+    // process.env is available in many bundlers/environments; try it first.
+    if (typeof process !== "undefined" && (process as any).env && (process as any).env[key]) {
+      return (process as any).env[key];
+    }
+  } catch (e) {
+    // ignore
+  }
 
+  // As a last resort we try a runtime eval to access import.meta only in environments that support it.
+  // We wrap it in eval so Metro's parser never sees the literal "import.meta" token at static analysis time.
+  try {
+    // eslint-disable-next-line no-eval
+    const meta = eval("typeof import !== 'undefined' && typeof import.meta !== 'undefined' ? import.meta : undefined");
+    if (meta && (meta as any).env && (meta as any).env[key]) {
+      return (meta as any).env[key];
+    }
+  } catch (e) {
+    // ignore
+  }
 
+  return undefined;
+}
 
 // ---------- Websocket class manager ---------- 
 class WSManager {

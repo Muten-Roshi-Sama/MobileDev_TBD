@@ -11,7 +11,7 @@ import { orpc } from "@/utils/orpc";
 import React, { useState, useEffect } from "react";
 import { useUser, useMessages, useConversations } from "@my-better-t-app/hooks";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
+import { useQueryClient } from "@tanstack/react-query";
 
 // Websockets
 import { useConversationStream } from "@my-better-t-app/hooks/websocket/useConversationStream";
@@ -243,7 +243,7 @@ function ChatArea({ cid }: { cid:string | null}) {
   const messages = listMessages.messages;
 
   // WS
-  // useConversationStream(orpc, cid ?? null);
+  useConversationStream(orpc, cid ?? null);
 
   return (
     <ScrollView className="flex-1 px-4 py-4">
@@ -284,23 +284,28 @@ function ChatArea({ cid }: { cid:string | null}) {
   );
 }
 
-function ChatInput() {
-  const [message, setMessage] = useState("");
+function ChatInput({ cid }: { cid: string | null }) {
+  const {send, setNewMessage, newMessage} = useMessages(orpc, cid ?? '');  // ? conversationId=cid
+
+  const canSend = newMessage?.trim().length > 0;
 
   return (
     <View className="px-4 py-3 flex-row items-end gap-2">
       <View className="flex-1">
         <TextField>
           <TextField.Input
-            value={message}
-            onChangeText={setMessage}
+            value={newMessage}
+            onChangeText={(text: string) => setNewMessage(text)}
             placeholder="Type a message..."
             multiline
+            // On native pressing "send" on keyboard could trigger onSubmitEditing.
+            // If you want to also send on keyboard submit (single-line), uncomment below:
+            // onSubmitEditing={() => { if (canSend) send(); }}
           />
         </TextField>
       </View>
 
-      <Button onPress={() => setMessage("")} isDisabled={!message.trim()}>
+      <Button onPress={() => { if (canSend) send(); }} isDisabled={!canSend}>
         <Button.Label>Send</Button.Label>
       </Button>
     </View>
@@ -326,10 +331,8 @@ export default function MessagingMobile() {
 
   return (
     <Container className="bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
+
         <ChatLayout>
           {/* LEFT */}
           <SideBar>
@@ -347,7 +350,7 @@ export default function MessagingMobile() {
           <ChatWindow>
             <ChatHeader />
             <ChatArea cid={selectedConversationId} />
-            <ChatInput />
+            <ChatInput cid={selectedConversationId} />
           </ChatWindow>
 
           
