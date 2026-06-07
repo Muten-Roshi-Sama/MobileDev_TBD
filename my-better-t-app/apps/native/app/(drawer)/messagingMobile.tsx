@@ -1,16 +1,23 @@
-import React, { useState, useMemo } from "react";
+// messagingMobile.tsx
+
+// Native
 import { View, Text, ScrollView, Alert, Pressable, KeyboardAvoidingView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Button, Surface, TextField } from "heroui-native";
 import { Container } from "@/components/container";
+
+// React
 import { orpc } from "@/utils/orpc";
+import React, { useState, useEffect } from "react";
 import { useUser, useMessages, useConversations } from "@my-better-t-app/hooks";
 
+// Websockets
+import { useConversationStream } from "@my-better-t-app/hooks/websocket/useConversationStream";
+
+
+
+
 type ConversationItem = ReturnType<typeof useConversations>["conversations"][number];
-
-
-
-
 
 
 // ------ Helper --------
@@ -45,10 +52,10 @@ function SideBar({ children }: { children: React.ReactNode }) {
 function SearchBar({
   searchText,
   setSearchText,
-}: {
-  searchText: string;
-  setSearchText: (value: string) => void;
-}) {
+  }: {
+    searchText: string;
+    setSearchText: (value: string) => void;
+  }) {
   return (
     <View className="px-4 py-3 border-b border-border">
       <TextField>
@@ -70,13 +77,13 @@ function ConversationList({
   searchText,
   selectedConversationId,
   onSelectConversation,
-}: {
+  }: {
   conversations: ConversationItem[];
   search: ReturnType<typeof useUser>["search"];
   searchText: string;
   selectedConversationId: string | null;
   onSelectConversation: (conversationId: string) => void;
-}) {
+  }) {
   const query = searchText.trim().toLowerCase();
 
   const visibleConversations =
@@ -112,11 +119,11 @@ function ConversationListItem({
   conversation,
   selected,
   onPress,
-}: {
+  }: {
   conversation: ConversationItem;
   selected: boolean;
   onPress: () => void;
-}) {
+  }) {
   // TODO: Add user name logic here later
   const names = "User Name"; // Placeholder
   const lastText = conversation.lastMessage?.text ?? "No messages";
@@ -160,9 +167,9 @@ function ConversationListItem({
 // ======= 2. ChatWindow ===========
 function ChatWindow({
   children: [chatHeader, chatArea, chatInput],
-}: {
+  }: {
   children: [React.ReactNode, React.ReactNode, React.ReactNode];
-}) {
+  }) {
   return (
     <View className="flex-1 flex-col">
       <View className="shrink-0 border-b border-border">{chatHeader}</View>
@@ -238,7 +245,7 @@ export default function MessagingMobile() {
         className="flex-1"
       >
         <ChatLayout>
-          {/* LEFT - SIDEBAR */}
+          {/* LEFT */}
           <SideBar>
             <SearchBar searchText={searchText} setSearchText={setSearchText} />
             <ConversationList
@@ -250,7 +257,7 @@ export default function MessagingMobile() {
             />
           </SideBar>
 
-          {/* RIGHT - CHAT WINDOW */}
+          {/* RIGHT */}
           <ChatWindow>
             <ChatHeader />
             <ChatArea />

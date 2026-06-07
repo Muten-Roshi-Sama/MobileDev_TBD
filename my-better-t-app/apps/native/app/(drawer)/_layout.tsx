@@ -26,6 +26,9 @@ function DrawerLayout() {
         drawerStyle: { backgroundColor: themeColorBackground },
       }}
     >
+
+
+      {/* Home */}
       <Drawer.Screen
         name="index"
         options={{
@@ -42,7 +45,31 @@ function DrawerLayout() {
           ),
         }}
       />
+
+
+      {/* Messaging APP */}
       <Drawer.Screen
+        name="messagingMobile"
+        options={{
+          headerTitle: "Messaging",
+          drawerLabel: ({ color, focused }) => (
+            <Text style={{ color: focused ? color : themeColorForeground }}>
+              Messaging
+            </Text>
+          ),
+          drawerIcon: ({ size, color, focused }) => (
+            <Ionicons
+              name="chatbubble-outline"
+              size={size}
+              color={focused ? color : themeColorForeground}
+            />
+          ),
+        }}
+      />
+
+
+      {/* Tabs */}
+      {/* <Drawer.Screen
         name="(tabs)"
         options={{
           headerTitle: "Tabs",
@@ -64,8 +91,11 @@ function DrawerLayout() {
             </Link>
           ),
         }}
-      />
-      <Drawer.Screen
+      /> */}
+
+
+      {/* todos */}
+      {/* <Drawer.Screen
         name="todos"
         options={{
           headerTitle: "Todos",
@@ -96,7 +126,7 @@ function DrawerLayout() {
             />
           ),
         }}
-      />
+      /> */}
     </Drawer>
   );
 }
