@@ -1,9 +1,27 @@
 
-# VoidX
+<img src="img/voidx_banner.png">
 
-> A modern full-stack messaging application built with a TypeScript-first architecture, real-time communication, and shared business logic across web and mobile platforms.
 
----
+<p align="center">
+  A modern full-stack messaging platform built with TypeScript,
+  TanStack Start, Expo, PostgreSQL and WebSockets.
+</p>
+
+<p align="center">
+
+<img src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square">
+<img src="https://img.shields.io/badge/TypeScript-100%25-blue?style=flat-square&logo=typescript">
+<img src="https://img.shields.io/badge/Turborepo-Monorepo-EF4444?style=flat-square&logo=turborepo">
+<img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma">
+<img src="https://img.shields.io/badge/WebSockets-Realtime-orange?style=flat-square">
+<img src="https://img.shields.io/badge/Expo-Mobile-000020?style=flat-square&logo=expo">
+</p>
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=ts,react,postgres,docker,prisma,git" />
+</p>
+
+
 
 ## Overview
 
@@ -252,5 +270,9 @@ network service, you must make the corresponding source code available
 under the same license.
 
 See the [LICENSE](LICENSE) file for the full license text.
+
+
+
+
 
 
