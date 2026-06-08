@@ -8,7 +8,7 @@ import { Container } from "@/components/container";
 
 // React
 import { orpc } from "@/utils/orpc";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useUser, useMessages, useConversations } from "@my-better-t-app/hooks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,8 @@ import { useQueryClient } from "@tanstack/react-query";
 // Websockets
 import { useConversationStream } from "@my-better-t-app/hooks/websocket/useConversationStream";
 
-
+// Expo location
+import { getGoogleMapsLink } from "@/utils/location";
 
 
 type ConversationItem = ReturnType<typeof useConversations>["conversations"][number];
@@ -30,6 +31,10 @@ function formatTime(value: Date | string | number | null | undefined) {
     minute: "2-digit",
   }).format(new Date(value));
 }
+
+
+
+
 
 // -------- Layout ---------
 function ChatLayout({
@@ -289,6 +294,27 @@ function ChatInput({ cid }: { cid: string | null }) {
 
   const canSend = newMessage?.trim().length > 0;
 
+  // Mobile Feature : Share location
+  const pendingLocationRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingLocationRef.current) return;
+
+    send();
+    pendingLocationRef.current = null;
+  }, [newMessage]);
+  const sendLocation = async () => {
+    try {
+      const link = await getGoogleMapsLink();
+
+      pendingLocationRef.current = link;
+      setNewMessage(link);
+
+    } catch (e) {
+      console.error("Failed to send location:", e);
+    }
+  };
+
+
   return (
     <View className="px-4 py-3 flex-row items-end gap-2">
       <View className="flex-1">
@@ -298,12 +324,14 @@ function ChatInput({ cid }: { cid: string | null }) {
             onChangeText={(text: string) => setNewMessage(text)}
             placeholder="Type a message..."
             multiline
-            // On native pressing "send" on keyboard could trigger onSubmitEditing.
-            // If you want to also send on keyboard submit (single-line), uncomment below:
-            // onSubmitEditing={() => { if (canSend) send(); }}
           />
         </TextField>
       </View>
+
+      {/* Location button */}
+      <Button onPress={sendLocation}>
+        <Button.Label>📍</Button.Label>
+      </Button>
 
       <Button onPress={() => { if (canSend) send(); }} isDisabled={!canSend}>
         <Button.Label>Send</Button.Label>
