@@ -1,3 +1,53 @@
+# docker-compose.yaml (root)
+
+# services:
+#   postgres:
+#     image: postgres:16-alpine
+#     container_name: my-better-t-app-postgres
+
+#     environment:
+#       POSTGRES_DB: my-better-t-app
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: password
+
+#     ports:
+#       - "5432:5432"
+
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U postgres -d my-better-t-app"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+
+#   web:
+#     build:
+#       context: .
+#       target: web
+
+#     container_name: my-better-t-app-web
+
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+
+#     environment:
+#       DATABASE_URL: postgresql://postgres:password@postgres:5432/my-better-t-app
+#       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+#       BETTER_AUTH_URL: http://localhost:3001
+#       CORS_ORIGIN: http://localhost:3001
+#       NODE_ENV: development
+
+#     ports:
+#       - "3001:3001"
+
+# volumes:
+#   postgres_data:
+
+
+
 services:
 
   web:
@@ -20,6 +70,7 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    restart: unless-stopped
     command: pnpm --filter web dev -- --host 0.0.0.0
 
   postgres:
