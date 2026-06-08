@@ -97,6 +97,9 @@ export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
         onMutate: () => {
             if (!conversationId || !currentUserId) return; // ignore if undefined
 
+            // 1. snapshot previous cache (for optimistic update rollback)
+            const previous = queryClient.getQueryData(orpc.message.list.queryKey({ input: { conversationId } }));
+
             const tempMessage = {
                 id: `temp-${Date.now()}`,
                 conversationId,
@@ -109,6 +112,7 @@ export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
                 type: "text",
             };
 
+            // 2. Optimistic Update
             queryClient.setQueryData(
                 orpc.message.list.queryKey({ input: { conversationId } }),
                 (oldData) => {
@@ -120,8 +124,22 @@ export function useMessages(orpc: AppOrpcUtils, conversationId: string | null) {
                     };
                 }
             );
+            // 3. return snapshot for rollback
+            return { previous };
         },
-        // INVALIDATION - AUTO DONE :
+
+        // 4. Error Handling
+        // onError: (_err, _vars, context) => {
+        //     if (!context?.previous || !conversationId) return;
+
+        //     // rollback cache if mutation fails
+        //     queryClient.setQueryData(
+        //         orpc.message.list.queryKey({ input: { conversationId } }),
+        //         context.previous
+        //     );
+        // },
+
+        // 5. INVALIDATION - AUTO DONE :
         // onSettled: () => {
         //     queryClient.invalidateQueries(
         //         orpc.message.list.key({ conversationId: conversationId ?? '' }),

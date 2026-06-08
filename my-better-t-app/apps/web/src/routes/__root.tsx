@@ -16,6 +16,8 @@ import appCss from "../index.css?url";
 // 
 
 
+
+// Gives access to orpc and QueryClient to all the routes.
 export interface RouterAppContext {
   orpc: typeof orpc;
   queryClient: QueryClient;

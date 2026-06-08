@@ -2,17 +2,7 @@
 
 
 ### **Goal:** 
-Build a full-stack, centralized messaging app with authentication and client-server communication using the course stack. Later, the system can be extended toward a trust-minimized or decentralized architecture.
-
-
-
-### Features & Requirements :
-- Monorepo
-- Centralized server at first, open to decentralization later
-- Hashed password storage.
-- End-to-end encryption
-
-
+Build a full-stack, centralized messaging app with authentication and client-server communication using the course stack. Later, the system can be extended toward a trust-minimized or decentralized architecture later.
 
 ### Tech Stack :
 Web Frontend : Tanstack start
@@ -49,11 +39,7 @@ Participants HAS Users
 
 
 
-
-
-
 ## Setup :
-
 
 ### Launch the apps
 Launch Web, Native and Websocket server (attached to web) :
@@ -63,7 +49,7 @@ docker compose up -d postgres
 pnpm run dev
 
 # Option 2. Start all with docker (not working for native yet)
-docker compose up -d #at root folder
+docker compose up -d # at root folder, this will launch web + db production-style
 ```
 
 
@@ -118,31 +104,65 @@ apps/native/
 
 
 ## DONE :
-- db models with prisma are done
-- routers are done
-- hooks too (useUser, useMessages, UseConversation)
-+ SOCKETS : make sent messages appear immediately to the recipient.
 
-### web ui :
-- database seeding via UI (this only for web is enough)
+### Database, Schemas and Architecture :
+- db models with prisma : done
+- routers and API functions : done
+- hooks (useUser, useMessages, UseConversation)
+- Dockerization : can start postrgres db and web directly using docker.
+- SOCKETS : make sent messages appear immediately to the recipient.
+
+#### Hooks :
+see api functions : `/packages/api/src/routers/chat`
+see hooks : `/packages/hooks/hooks.ts`
+
+Hooks use the API functions and centralize them inside useUser, use Message and useConversation.
+Those hooks are reused inside web and mobile. 
+
+
+1. Optimistic updates : example inside `hooks.ts` with useMessage when `const addMessage`.
+
+
+
+
+### Web  :
+- database seeding via UI.
 - connecting via multiple users and sending messages
 - searchbar conv search
 - lastread bubble and last message timestamp
+- Welcome page with SEO referencing.
+
+#### Dev automated database seeding :
+see `/apps/web/src/dev/dev-seed.tsx`
+--> Automated database seeding using a simple Prima authClient script.
+- Reset and re-generate the database by running `pnpm run db:fresh`
+
+#### Websockets
+see api websocket definition :`/packages/api/src/routers/websocket/websocket.ts`
+see hooks implementation : `/packages/hooks/websocket`
+- starts a websocket server on port 4001 (docker must also expose this port)
+- API functions directly implement WS functions to subscribe to sockets so they can be notified when a specifi event happens (message_sent...)
+- it is started inside : `/apps/web/src/routes/api/rpc/$.ts`
+
 
 
 ### Mobile :
+- Fully implemented, similar UI as web.
+- Websocket, sending messages, conversation id persistence in url..
+- Mobile Specific Feature : Can share location inside conversations on the press of a button !
+
+#### Mobile Feature : 
+see `/apps/native/utils/location.ts`
+- Added `expo-location` inside apps.json within native folder.
+
+
+
 
 --- 
 
 ## TODO :  
-+ add dockerizing of the entire app
-+ read bubbles etc make all optimistic updates (3 vs)
-+ Native app
-+ add a unique mobile feature of mobile to the app (gps, camera, ...)
-
-
-+ Create a welcome page with good referencing and respect preloader and prefetching for good SEO
-+ Create New conversation window
+-  Create New conversation window to add new conversations by searching for users email.
+- Create QR-code scanner to add new conversations.
 
 
 
